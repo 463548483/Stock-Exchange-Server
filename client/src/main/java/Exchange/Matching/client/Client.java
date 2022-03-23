@@ -1,5 +1,7 @@
-package Exchange.Matching;
+package Exchange.Matching.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -23,15 +25,18 @@ public class Client extends Socket {
         System.out.println("Client connected");
     }
 
-    public void send() throws Exception {
+    public void send(String filename) throws Exception {
         try{
-            File file=new File("empty.xml");
-            if(file.exists()){
-                filein=new FileInputStream(file);
+            // File file=new File(filename);
+            // if(file.exists()){
+                filein=getClass().getClassLoader().getResourceAsStream(filename);//new FileInputStream(file);
+                int fileLen=filein.available();
                 toTrans=new DataOutputStream(socket.getOutputStream());
 
-                toTrans.writeLong(file.length());
+                System.out.println("send len "+fileLen);
+                toTrans.writeLong(fileLen);
                 toTrans.flush();
+                
 
                 System.out.println("start send xml");
                 byte[] bytes=new byte[1024];
@@ -45,7 +50,8 @@ public class Client extends Socket {
                 }
                 System.out.println("finish client send");
 
-            }
+            //}
+            System.out.println("not exist");
         }catch(Exception e){
                 e.printStackTrace();
         }finally{
@@ -78,7 +84,7 @@ public class Client extends Socket {
 
     public static void main(String[] args){
         try(Client client=new Client()){
-            client.send();
+            client.send("empty.xml");
         }catch(Exception e){
             e.printStackTrace();
         }
