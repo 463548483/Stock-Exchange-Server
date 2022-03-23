@@ -118,12 +118,12 @@ public class Server {
         default: // 其他
             System.out.println("NodeType: " + n.getNodeType() + ", NodeName: " + n.getNodeName());
         }
-        for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
-            switch (child.getNodeName()){
-                case "account":
-                case "symbol"
-            }
-        }
+        // for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
+        //     switch (child.getNodeName()){
+        //         case "account":
+        //         case "symbol"
+        //     }
+        // }
     }
 
     public static void main(String[] args) {

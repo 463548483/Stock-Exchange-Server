@@ -27,31 +27,28 @@ public class Client extends Socket {
 
     public void send(String filename) throws Exception {
         try{
-            // File file=new File(filename);
-            // if(file.exists()){
-                filein=getClass().getClassLoader().getResourceAsStream(filename);//new FileInputStream(file);
-                int fileLen=filein.available();
-                toTrans=new DataOutputStream(socket.getOutputStream());
 
-                System.out.println("send len "+fileLen);
-                toTrans.writeLong(fileLen);
-                toTrans.flush();
-                
+            filein=getClass().getClassLoader().getResourceAsStream(filename);//new FileInputStream(file);
+            int fileLen=filein.available();
+            toTrans=new DataOutputStream(socket.getOutputStream());
 
-                System.out.println("start send xml");
-                byte[] bytes=new byte[1024];
-                for (;;){
-                    int n=filein.read(bytes,0,bytes.length);
-                    if (n==-1){
-                        break;
-                    }
-                    toTrans.write(bytes,0,n);
-                    toTrans.flush();
+            System.out.println("send len "+fileLen);
+            toTrans.writeLong(fileLen);
+            toTrans.flush();
+            
+
+            System.out.println("start send xml");
+            byte[] bytes=new byte[1024];
+            for (;;){
+                int n=filein.read(bytes,0,bytes.length);
+                if (n==-1){
+                    break;
                 }
-                System.out.println("finish client send");
+                toTrans.write(bytes,0,n);
+                toTrans.flush();
+            }
+            System.out.println("finish client send");
 
-            //}
-            System.out.println("not exist");
         }catch(Exception e){
                 e.printStackTrace();
         }finally{
