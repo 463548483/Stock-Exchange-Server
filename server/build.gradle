@@ -28,7 +28,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'Exchange.Matching.App'
+    mainClass = 'Exchange.Matching.server.Server'
 }
 
 tasks.named('test') {
