@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'Exchange-Matching'
-include('app')
+include('server', 'client')
