@@ -10,7 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+import java.sql.SQLException;
 
 import javax.xml.parsers.*;
 
@@ -26,7 +26,7 @@ public class Server {
     //private Checker checker;
     private static int task_id;
 
-
+/*
     public Server() throws IOException{
         socket=new ServerSocket(12345);
         task_id=0;
@@ -49,6 +49,7 @@ public class Server {
 
         }
 
+        
         @Override
         public void run(){
             try{
@@ -125,13 +126,17 @@ public class Server {
         //     }
         // }
     }
-
-    public static void main(String[] args) {
+    */
+    public static void main(String[] args) throws SQLException {
+        db test = new db();
+        test.deleteTables();
+        test.buildTables();
+        /*
         try{
             Server server=new Server();
             server.listen();
         }catch(Exception e){
             e.printStackTrace();
-        }
+        }*/
     }
 }
