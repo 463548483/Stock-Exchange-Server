@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.*;
 
@@ -82,7 +84,8 @@ public class Server {
         }
     }
 
-    void create_parse(Node n) {
+    public List<Object> create_parse(Node n) {
+        List<Object> parseObjects=new ArrayList<Object>();
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -100,26 +103,31 @@ public class Server {
                 } 
                 
                 Account account=new Account(id,balance);
+                parseObjects.add(account);
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
-                for(int j=0;j<sym_attrs.getLength();j++){
-                    Node x=sym_attrs.item(j);
-                    System.out.println(x.getNodeName()+" "+x.getNodeValue());
-                }
+                String symbol_name=sym_attrs.item(0).getNodeValue();
+                Sym symbol=new Sym(symbol_name);
                 for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
+                        int sym_amount=Integer.parseInt(sym_child.getTextContent());
                         System.out.println(sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
+                            int sym_accountid=Integer.parseInt(x.getNodeValue());
                             System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                            Position position=new Position(symbol, sym_amount, sym_accountid);
+                            parseObjects.add(position);
                         }
                     }
                 }
+                break;
 
             }
         }
+        return parseObjects;
     }
     
     public static void main(String[] args) throws SQLException {
