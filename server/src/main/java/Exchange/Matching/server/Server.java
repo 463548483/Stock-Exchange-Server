@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -53,41 +54,23 @@ public class Server {
         @Override
         public void run(){
             try{
+                // InputStreamReader reader=new InputStreamReader(socket.getInputStream());
+                // System.out.println((char)reader.read());
                 Trans=new DataInputStream(socket.getInputStream());
                 long fileLen=Trans.readLong();
+                System.out.println(fileLen);
 
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc=builder.parse(Trans);
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
-                        //create_parse(doc.getFirstChild());
+                        create_parse(doc.getFirstChild());
                     case "transactions":
                         //transactions_parse(doc.getFirstChild());
                 }
-                //printNode(doc, 1);
-                NodeList create_list=doc.getElementsByTagName("create");
-                NodeList account_list=doc.getElementsByTagName("account");
-                NodeList symbol_list=doc.getElementsByTagName("symbol");
 
-                for (int i = 0; i < account_list.getLength(); i++) {
-                    Node account = account_list.item(i);
-                    System.out.println("Name: "+account.getNodeName()+" Value: "+account.getNodeValue()+" Type: "+account.getNodeType());
-                    NamedNodeMap attrs= account.getAttributes();
-                    for(int j=0;j<attrs.getLength();j++){
-                        Node x=attrs.item(j);
-                        System.out.println(x.getNodeName()+" "+x.getNodeValue()+" "+x.getNodeType());
-                    }  
-                }
-                for (int i = 0; i < symbol_list.getLength(); i++) {
-                    Node symbol = symbol_list.item(i);
-                    System.out.println("Name: "+symbol.getNodeName()+" Value: "+symbol.getNodeValue()+" Type: "+symbol.getNodeType());
-                    NamedNodeMap attrs= symbol.getAttributes();
-                    for(int j=0;j<attrs.getLength();j++){
-                        Node x=attrs.item(j);
-                        System.out.println(x.getNodeName()+" "+x.getNodeValue()+" "+x.getNodeType());
-                    }  
-                }
+
             }catch(Exception e){
                 e.printStackTrace();
             }finally{
@@ -99,32 +82,35 @@ public class Server {
         }
     }
 
-    void create_parse(Node n, int indent) {
-        for (int i = 0; i < indent; i++) {
-            System.out.print(' ');
+    void create_parse(Node n) {
+        for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
+            switch (child.getNodeName()){
+            case "account":
+                NamedNodeMap account_attrs= child.getAttributes();
+                for(int j=0;j<account_attrs.getLength();j++){
+                    Node x=account_attrs.item(j);
+                    System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                } 
+                break;
+            case "symbol":
+                NamedNodeMap sym_attrs= child.getAttributes();
+                for(int j=0;j<sym_attrs.getLength();j++){
+                    Node x=sym_attrs.item(j);
+                    System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                }
+                for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
+                    if (sym_child.getNodeName()=="account"){
+                        NamedNodeMap sym_account=sym_child.getAttributes();
+                        System.out.println(sym_child.getNodeValue()+sym_child.getTextContent());
+                        for(int j=0;j<sym_account.getLength();j++){
+                            Node x=sym_account.item(j);
+                            System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                        }
+                    }
+                }
+
+            }
         }
-        switch (n.getNodeType()) {
-        case Node.DOCUMENT_NODE: // Document节点=
-            System.out.println("Document: " + n.getNodeName());
-            break;
-        case Node.ELEMENT_NODE: // 元素节点
-            System.out.println("Element: " + n.getNodeName());
-            break;
-        case Node.TEXT_NODE: // 文本
-            System.out.println("Text: " + n.getNodeName() + " = " + n.getNodeValue());
-            break;
-        case Node.ATTRIBUTE_NODE: // 属性
-            System.out.println("Attr: " + n.getNodeName() + " = " + n.getNodeValue());
-            break;
-        default: // 其他
-            System.out.println("NodeType: " + n.getNodeType() + ", NodeName: " + n.getNodeName());
-        }
-        // for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
-        //     switch (child.getNodeName()){
-        //         case "account":
-        //         case "symbol"
-        //     }
-        // }
     }
     
     public static void main(String[] args) throws SQLException {
