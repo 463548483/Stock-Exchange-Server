@@ -25,11 +25,12 @@ public class Server {
     //private Proxy proxy;
     //private Checker checker;
     private static int task_id;
+    private static db stockDB;
 
-/*
-    public Server() throws IOException{
+    public Server() throws IOException, SQLException{
         socket=new ServerSocket(12345);
         task_id=0;
+        stockDB = new db();
     }
 
     public void listen() throws Exception{
@@ -48,7 +49,6 @@ public class Server {
             this.task_id=task_id;
 
         }
-
         
         @Override
         public void run(){
@@ -61,9 +61,9 @@ public class Server {
                 Document doc=builder.parse(Trans);
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
-                        create_parse(doc.getFirstChild());
+                        //create_parse(doc.getFirstChild());
                     case "transactions":
-                        transactions_parse(doc.getFirstChild());
+                        //transactions_parse(doc.getFirstChild());
                 }
                 //printNode(doc, 1);
                 NodeList create_list=doc.getElementsByTagName("create");
@@ -104,7 +104,7 @@ public class Server {
             System.out.print(' ');
         }
         switch (n.getNodeType()) {
-        case Node.DOCUMENT_NODE: // Document节点
+        case Node.DOCUMENT_NODE: // Document节点=
             System.out.println("Document: " + n.getNodeName());
             break;
         case Node.ELEMENT_NODE: // 元素节点
@@ -126,17 +126,13 @@ public class Server {
         //     }
         // }
     }
-    */
+    
     public static void main(String[] args) throws SQLException {
-        db test = new db();
-        test.deleteTables();
-        test.buildTables();
-        /*
         try{
             Server server=new Server();
             server.listen();
         }catch(Exception e){
             e.printStackTrace();
-        }*/
+        }
     }
 }

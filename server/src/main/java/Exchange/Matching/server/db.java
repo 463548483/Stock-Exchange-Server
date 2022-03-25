@@ -6,10 +6,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class db {
-    Connection connection;
+    private Connection connection;
 
-    public db() {
+    public db() throws SQLException {
         this.connection = buildDBConnection();
+        deleteTables();
+        buildTables();
     }
 
     /*
@@ -33,24 +35,27 @@ public class db {
         }
     }
 
-    public void deleteTables() throws SQLException{
+    /*
+     * Delete Tables in DB
+     * 
+     */
+    private void deleteTables() throws SQLException {
         Statement st = connection.createStatement();
-        String sql_delete = "DROP TABLE IF EXISTS POSITION, ACCOUNT, ORDER_OPEN;";
+        String sql_delete = "DROP TABLE IF EXISTS SYM, POSITION, ACCOUNT, ORDER_OPEN;";
         st.executeUpdate(sql_delete);
         st.close();
     }
-
 
     /*
      * Build Tables
      * 
      * @throws SQLException
      */
-    public void buildTables() throws SQLException {
+    private void buildTables() throws SQLException {
         Statement st = connection.createStatement();
 
         String sql_sym = "CREATE TABLE SYM(" +
-                "SYM_ID SERIAL," +
+                "SYM_ID SERIAL PRIMARY KEY," +
                 "SYM VARCHAR);";
 
         String sql_position = "CREATE TABLE POSITION(" +
@@ -58,21 +63,23 @@ public class db {
                 "ACCOUNT_ID INT," +
                 "SYM VARCHAR," +
                 "AMOUNT INT," +
-                // "CONSTRAINT SYM_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID) ON DELETE SET NULL ON UPDATE CASCADE," +
-                "CONSTRAINT POSITION_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
+                // "CONSTRAINT SYM_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID)
+                // ON DELETE SET NULL ON UPDATE CASCADE," +
+                "CONSTRAINT POSITION_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
-        String sql_account = "CREATE TABLE ACCOUNT(" + "ACCOUNT_ID SERIAL PRIMARY KEY," + "BALANCE INT);";
+        String sql_account = "CREATE TABLE ACCOUNT(" + "ACCOUNT_ID INT PRIMARY KEY," + "BALANCE INT);";
 
-        //String sql_order = "CREATE TABLE ORDER_OPEN(" + "ACCOUNT_ID SERIAL PRIMARY KEY," + "BALANCE INT);";
-        String sql_order = "CREATE TABLE ORDER_OPEN(" + 
-                           "ORDER_ID SERIAL PRIMARY KEY," + 
-                           "ACCOUNT_ID INT," + 
-                           "SYM VARCHAR," + 
-                           "AMOUNT INT," + 
-                           "BOUND INT," +
-                           // "CONSTRAINT SYM_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID) ON DELETE SET NULL ON UPDATE CASCADE," +
-                           "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
-        
+        String sql_order = "CREATE TABLE ORDER_OPEN(" +
+                "ORDER_ID SERIAL PRIMARY KEY," +
+                "ACCOUNT_ID INT," +
+                "SYM VARCHAR," +
+                "AMOUNT INT," +
+                "BOUND INT," +
+                // "CONSTRAINT SYM_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID)
+                // ON DELETE SET NULL ON UPDATE CASCADE," +
+                "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
+
+        st.executeUpdate(sql_sym);
         st.executeUpdate(sql_account);
         st.executeUpdate(sql_position);
         st.executeUpdate(sql_order);
@@ -84,7 +91,30 @@ public class db {
      * 
      * @throws SQLException
      */
-    public void closeConnection() throws SQLException {
+    private void closeConnection() throws SQLException {
         connection.close();
+    }
+
+    /*
+     * Insert Date into DB according to Object type
+     */
+    public void insertData(Object obj) throws SQLException {
+        if(obj instanceof Sym){
+            Sym temp = (Sym) obj;
+            Statement st = connection.createStatement();
+            String sql = "INSERT INTO SYM (VARCHAR) VALUES(" + temp.getSym() + ");";
+            st.executeUpdate(sql);
+            st.close();
+        }
+        if (obj instanceof Account) {
+            Account temp = (Account) obj;
+            Statement st = connection.createStatement();
+            String sql = "INSERT INTO ACCOUNT (ACCOUNT_ID, BALANCE) VALUES(" + temp.getID() + ", " + temp.getBalance()
+                    + ");";
+            st.executeUpdate(sql);
+            st.close();
+        }
+        // if (obj instanceof )
+
     }
 }
