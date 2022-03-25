@@ -10,6 +10,7 @@ public class Account {
     public Account(int id, int balance){
         this.id = id;
         this.balance = balance;
+        this.positions=new ArrayList<Position>();
     }
 
     public int getID(){
@@ -18,6 +19,10 @@ public class Account {
     
     public int getBalance(){
         return this.balance;
+    }
+
+    public void insertPosition(Position p){
+        positions.add(p);
     }
 }
 
