@@ -86,11 +86,20 @@ public class Server {
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
+                int id=-1;
+                int balance=-1;
                 NamedNodeMap account_attrs= child.getAttributes();
                 for(int j=0;j<account_attrs.getLength();j++){
                     Node x=account_attrs.item(j);
-                    System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                    switch (x.getNodeName()){
+                        case "id":
+                            id=Integer.parseInt(x.getNodeValue());
+                        case "balance":
+                            balance=Integer.parseInt(x.getNodeValue());
+                    }
                 } 
+                
+                Account account=new Account(id,balance);
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
@@ -101,7 +110,7 @@ public class Server {
                 for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
-                        System.out.println(sym_child.getNodeValue()+sym_child.getTextContent());
+                        System.out.println(sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
                             System.out.println(x.getNodeName()+" "+x.getNodeValue());

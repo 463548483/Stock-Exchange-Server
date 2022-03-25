@@ -69,7 +69,7 @@ public class db {
 
         String sql_account = "CREATE TABLE ACCOUNT(" + "ACCOUNT_ID INT PRIMARY KEY," + "BALANCE INT);";
 
-        String sql_order = "CREATE TABLE ORDER_OPEN(" +
+        String sql_order = "CREATE TABLE ORDER_ALL(" +
                 "ORDER_ID SERIAL PRIMARY KEY," +
                 "ACCOUNT_ID INT," +
                 "SYM VARCHAR," +
@@ -77,6 +77,7 @@ public class db {
                 "BOUND INT," +
                 // "CONSTRAINT SYM_FK FOREIGN KEY (POSITION_ID) REFERENCES POSITION(POSITION_ID)
                 // ON DELETE SET NULL ON UPDATE CASCADE," +
+                "STATUS VARCHAR," + 
                 "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
         st.executeUpdate(sql_sym);
