@@ -81,7 +81,7 @@ public class Client extends Socket {
 
     public static void main(String[] args){
         try(Client client=new Client()){
-            client.send("empty.xml");
+            client.send(args[0]);
         }catch(Exception e){
             e.printStackTrace();
         }
