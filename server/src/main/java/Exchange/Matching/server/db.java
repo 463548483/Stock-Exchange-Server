@@ -41,7 +41,7 @@ public class db {
      */
     private void deleteTables() throws SQLException {
         Statement st = connection.createStatement();
-        String sql_delete = "DROP TABLE IF EXISTS SYM, POSITION, ACCOUNT, ORDER_OPEN;";
+        String sql_delete = "DROP TABLE IF EXISTS SYM, POSITION, ACCOUNT, ORDER_ALL;";
         st.executeUpdate(sql_delete);
         st.close();
     }
@@ -100,13 +100,13 @@ public class db {
      * Insert Date into DB according to Object type
      */
     public void insertData(Object obj) throws SQLException {
-        if(obj instanceof Sym){
-            Sym temp = (Sym) obj;
-            Statement st = connection.createStatement();
-            String sql = "INSERT INTO SYM (VARCHAR) VALUES(" + temp.getSym() + ");";
-            st.executeUpdate(sql);
-            st.close();
-        }
+        // if(obj instanceof Sym){
+        //     Sym temp = (Sym) obj;
+        //     Statement st = connection.createStatement();
+        //     String sql = "INSERT INTO SYM (VARCHAR) VALUES(" + temp.getSym() + ");";
+        //     st.executeUpdate(sql);
+        //     st.close();
+        // }
         if (obj instanceof Account) {
             Account temp = (Account) obj;
             Statement st = connection.createStatement();

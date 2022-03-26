@@ -13,7 +13,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.*;
 
@@ -69,7 +71,7 @@ public class Server {
                     case "create" :
                         create_parse(doc.getFirstChild());
                     case "transactions":
-                        //transactions_parse(doc.getFirstChild());
+                        transactions_parse(doc.getFirstChild());
                 }
 
 
@@ -84,8 +86,8 @@ public class Server {
         }
     }
 
-    public List<Object> create_parse(Node n) {
-        List<Object> parseObjects=new ArrayList<Object>();
+    public Map<String,Object> create_parse(Node n) {
+        Map<String,Object> parseObjects=new HashMap<String,Object>();
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -103,12 +105,11 @@ public class Server {
                 } 
                 
                 Account account=new Account(id,balance);
-                parseObjects.add(account);
+                parseObjects.put("create",account);
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
                 String symbol_name=sym_attrs.item(0).getNodeValue();
-                Sym symbol=new Sym(symbol_name);
                 for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
@@ -118,13 +119,59 @@ public class Server {
                             Node x=sym_account.item(j);
                             int sym_accountid=Integer.parseInt(x.getNodeValue());
                             System.out.println(x.getNodeName()+" "+x.getNodeValue());
-                            Position position=new Position(symbol, sym_amount, sym_accountid);
-                            parseObjects.add(position);
+                            Position position=new Position(symbol_name, sym_amount, sym_accountid);
+                            parseObjects.put("Sym",position);
                         }
                     }
                 }
                 break;
 
+            }
+        }
+        return parseObjects;
+    }
+
+    public Map<String,Object> transactions_parse(Node n) {
+        Map<String,Object> parseObjects=new HashMap<String,Object>();
+        int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
+        System.out.println(account_id);
+        for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
+            switch (child.getNodeName()){
+            case "order":
+                NamedNodeMap account_attrs= child.getAttributes();
+                String symbol="error";
+                int amount=0;
+                Double limit=0.0;
+                for(int j=0;j<account_attrs.getLength();j++){
+                    Node x=account_attrs.item(j);
+                    switch (x.getNodeName()){
+                        case "sym":
+                            symbol=x.getNodeValue();
+                            System.out.println(symbol);
+                            break;
+                        case "amount":
+                            amount=Integer.parseInt(x.getNodeValue());
+                            System.out.println(amount);
+                            break;
+                        case "limit":
+                            limit=Double.parseDouble(x.getNodeValue());
+                            System.out.println(limit);
+                            break;
+                    }
+                }                               
+                Order order=new Order(account_id,symbol,amount,limit);
+                parseObjects.put("order",order);
+                break;
+            case "query":
+                int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
+                System.out.println(query_transaction_id);
+                parseObjects.put("query",query_transaction_id);
+                break;
+            case "cancel":
+                int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
+                System.out.println(cancel_transaction_id);
+                parseObjects.put("cancel",cancel_transaction_id);
+                break;
             }
         }
         return parseObjects;
