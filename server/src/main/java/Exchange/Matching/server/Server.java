@@ -27,8 +27,7 @@ import org.w3c.dom.NodeList;
 
 public class Server {
     private ServerSocket socket;
-    //private Proxy proxy;
-    //private Checker checker;
+    private Checker checker;
     private static int task_id;
     private static db stockDB;
 
@@ -67,11 +66,15 @@ public class Server {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc=builder.parse(Trans);
+                Map<String,Object> to_check=new HashMap<>();
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
-                        create_parse(doc.getFirstChild());
+                        to_check=create_parse(doc.getFirstChild());
                     case "transactions":
-                        transactions_parse(doc.getFirstChild());
+                        to_check=transactions_parse(doc.getFirstChild());
+                }
+                for (Object o:to_check.values()){
+                    checker.visit(o);
                 }
 
 
@@ -176,6 +179,8 @@ public class Server {
         }
         return parseObjects;
     }
+
+    public void checkRule(){}
     
     public static void main(String[] args) throws SQLException {
         try{
