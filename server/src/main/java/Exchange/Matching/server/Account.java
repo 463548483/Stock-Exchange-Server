@@ -3,7 +3,27 @@ package Exchange.Matching.server;
 import java.util.ArrayList;
 
 public class Account {
-    private Account accout;
-    private ArrayList<Order> order_list;
+    private int id;
+    private int balance;
+    private ArrayList<Position> positions;
+
+    public Account(int id, int balance){
+        this.id = id;
+        this.balance = balance;
+        this.positions=new ArrayList<Position>();
+    }
+
+    public int getID(){
+        return this.id;
+    }
     
+    public int getBalance(){
+        return this.balance;
+    }
+
+    public void insertPosition(Position p){
+        positions.add(p);
+    }
 }
+
+
