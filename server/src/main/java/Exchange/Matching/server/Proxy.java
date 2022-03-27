@@ -18,6 +18,10 @@ public class Proxy {
         toCheck=new HashMap<String,Object>();
     }
 
+    public Map<String,Object> getTocheck(){
+        return toCheck;
+    }
+
     public void create_parse(Node n) {
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){

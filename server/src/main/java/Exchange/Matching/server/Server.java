@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.*;
 
@@ -27,12 +28,14 @@ import org.w3c.dom.NodeList;
 
 public class Server {
     private ServerSocket socket;
-    private Checker checker;
+    private CheckExcute checkExcute;
+    private Proxy proxy;
     private static int task_id;
     private static db stockDB;
 
     public Server() throws IOException, SQLException{
         socket=new ServerSocket(12345);
+        proxy=new Proxy();
         task_id=0;
         stockDB = new db();
     }
@@ -66,15 +69,14 @@ public class Server {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc=builder.parse(Trans);
-                Map<String,Object> to_check=new HashMap<>();
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
-                        to_check=create_parse(doc.getFirstChild());
+                        proxy.create_parse(doc.getFirstChild());
                     case "transactions":
-                        to_check=transactions_parse(doc.getFirstChild());
+                        proxy.transactions_parse(doc.getFirstChild());
                 }
-                for (Object o:to_check.values()){
-                    checker.visit(o);
+                for (Entry<String, Object> e:proxy.getTocheck().entrySet()){
+                    checkExcute.visit(e);
                 }
 
 
@@ -89,96 +91,7 @@ public class Server {
         }
     }
 
-    public Map<String,Object> create_parse(Node n) {
-        Map<String,Object> parseObjects=new HashMap<String,Object>();
-        for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
-            switch (child.getNodeName()){
-            case "account":
-                int id=-1;
-                int balance=-1;
-                NamedNodeMap account_attrs= child.getAttributes();
-                for(int j=0;j<account_attrs.getLength();j++){
-                    Node x=account_attrs.item(j);
-                    switch (x.getNodeName()){
-                        case "id":
-                            id=Integer.parseInt(x.getNodeValue());
-                        case "balance":
-                            balance=Integer.parseInt(x.getNodeValue());
-                    }
-                } 
-                
-                Account account=new Account(id,balance);
-                parseObjects.put("create",account);
-                break;
-            case "symbol":
-                NamedNodeMap sym_attrs= child.getAttributes();
-                String symbol_name=sym_attrs.item(0).getNodeValue();
-                for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
-                    if (sym_child.getNodeName()=="account"){
-                        NamedNodeMap sym_account=sym_child.getAttributes();
-                        int sym_amount=Integer.parseInt(sym_child.getTextContent());
-                        System.out.println(sym_child.getTextContent());
-                        for(int j=0;j<sym_account.getLength();j++){
-                            Node x=sym_account.item(j);
-                            int sym_accountid=Integer.parseInt(x.getNodeValue());
-                            System.out.println(x.getNodeName()+" "+x.getNodeValue());
-                            Position position=new Position(symbol_name, sym_amount, sym_accountid);
-                            parseObjects.put("Sym",position);
-                        }
-                    }
-                }
-                break;
-
-            }
-        }
-        return parseObjects;
-    }
-
-    public Map<String,Object> transactions_parse(Node n) {
-        Map<String,Object> parseObjects=new HashMap<String,Object>();
-        int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
-        System.out.println(account_id);
-        for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
-            switch (child.getNodeName()){
-            case "order":
-                NamedNodeMap account_attrs= child.getAttributes();
-                String symbol="error";
-                int amount=0;
-                Double limit=0.0;
-                for(int j=0;j<account_attrs.getLength();j++){
-                    Node x=account_attrs.item(j);
-                    switch (x.getNodeName()){
-                        case "sym":
-                            symbol=x.getNodeValue();
-                            System.out.println(symbol);
-                            break;
-                        case "amount":
-                            amount=Integer.parseInt(x.getNodeValue());
-                            System.out.println(amount);
-                            break;
-                        case "limit":
-                            limit=Double.parseDouble(x.getNodeValue());
-                            System.out.println(limit);
-                            break;
-                    }
-                }                               
-                Order order=new Order(account_id,symbol,amount,limit);
-                parseObjects.put("order",order);
-                break;
-            case "query":
-                int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println(query_transaction_id);
-                parseObjects.put("query",query_transaction_id);
-                break;
-            case "cancel":
-                int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println(cancel_transaction_id);
-                parseObjects.put("cancel",cancel_transaction_id);
-                break;
-            }
-        }
-        return parseObjects;
-    }
+    
 
     public void checkRule(){}
     

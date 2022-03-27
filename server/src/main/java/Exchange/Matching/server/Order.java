@@ -12,4 +12,20 @@ public class Order {
         this.amount=amount;
         this.limit=limit;
     }
+
+    public int getAccountid(){
+        return account_id;
+    }
+
+    public String getSymbol(){
+        return symbol;
+    }
+
+    public int getAmount(){
+        return amount;
+    }
+
+    public double getLimit(){
+        return limit;
+    }
 }
