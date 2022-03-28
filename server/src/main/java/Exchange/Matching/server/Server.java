@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -46,6 +47,16 @@ public class Server {
         new Thread(new Task(socket,task_id)).start();
     }
 
+    public void send() throws Exception{
+        try{
+            OutputStream response=this.socket.getOutputStream();
+            response.write("test1\n"+"test2\n".getBytes());
+            response.flush();
+        }catch(Exception e){
+            e.printStackTrace();
+        }    
+    }
+
     class Task implements Runnable{
         private Socket socket;
         private DataInputStream Trans;
@@ -72,8 +83,10 @@ public class Server {
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
                         proxy.create_parse(doc.getFirstChild());
+                        break;
                     case "transactions":
                         proxy.transactions_parse(doc.getFirstChild());
+                        break;
                 }
                 for (Entry<String, Object> e:proxy.getTocheck().entrySet()){
                     checkExcute.visit(e);
@@ -84,9 +97,11 @@ public class Server {
                 e.printStackTrace();
             }finally{
                 try{
-
+                    socket.send();
                     socket.close();
-                }catch(Exception e){}
+                }catch(Exception e){
+
+                }
             }
         }
     }

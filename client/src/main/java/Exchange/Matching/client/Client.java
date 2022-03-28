@@ -1,5 +1,6 @@
 package Exchange.Matching.client;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -63,16 +65,14 @@ public class Client extends Socket {
     
     public void receive() throws IOException{
         try{
-            InputStream toReceive=new DataInputStream(socket.getInputStream());
-            byte[] bytes=new byte[1024]; 
-            for(;;){
-                int n=toReceive.read(bytes,0,bytes.length);
-                if (n==-1){
+            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            while (true){
+                String str=bufferedReader.readLine();
+                if (str==null){
                     break;
                 }
-                System.out.print(toReceive);
+                System.out.println(str);
             }
-            System.out.println("Client Receive Success");
             socket.close();
         }catch(Exception e){
             e.printStackTrace();
@@ -82,6 +82,7 @@ public class Client extends Socket {
     public static void main(String[] args){
         try(Client client=new Client()){
             client.send(args[0]);
+            client.receive();
         }catch(Exception e){
             e.printStackTrace();
         }
