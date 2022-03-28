@@ -38,6 +38,7 @@ public class Server {
         proxy=new Proxy();
         task_id=0;
         stockDB = new db();
+        checkExcute = new CheckExcute(stockDB);
     }
 
     public void listen() throws Exception{
@@ -69,13 +70,18 @@ public class Server {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 Document doc=builder.parse(Trans);
+
                 switch (doc.getFirstChild().getNodeName()){
                     case "create" :
                         proxy.create_parse(doc.getFirstChild());
+                        break;
                     case "transactions":
                         proxy.transactions_parse(doc.getFirstChild());
+                        break;
                 }
+                
                 for (Entry<String, Object> e:proxy.getTocheck().entrySet()){
+                    checkExcute = new CheckExcute(stockDB);
                     checkExcute.visit(e);
                 }
 

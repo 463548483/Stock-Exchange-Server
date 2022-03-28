@@ -1,5 +1,6 @@
 package Exchange.Matching.server;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.xml.parsers.*;
@@ -12,13 +13,13 @@ import org.w3c.dom.NodeList;
 
 
 public class Proxy {
-    private Map<String,Object> toCheck;
+    private LinkedHashMap<String,Object> toCheck;
 
     public Proxy(){
-        toCheck=new HashMap<String,Object>();
+        toCheck=new LinkedHashMap<String,Object>();
     }
 
-    public Map<String,Object> getTocheck(){
+    public LinkedHashMap<String,Object> getTocheck(){
         return toCheck;
     }
 
@@ -34,13 +35,17 @@ public class Proxy {
                     switch (x.getNodeName()){
                         case "id":
                             id=Integer.parseInt(x.getNodeValue());
+                            break;
                         case "balance":
                             balance=Integer.parseInt(x.getNodeValue());
+                            break;
                     }
                 } 
                 
                 Account account=new Account(id,balance);
-                toCheck.put("create",account);
+                //System.out.println("id: " + id);
+                //System.out.println("balance: " + balance);
+                toCheck.put("createAccount",account);
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
@@ -49,18 +54,17 @@ public class Proxy {
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
                         int sym_amount=Integer.parseInt(sym_child.getTextContent());
-                        System.out.println(sym_child.getTextContent());
+                        System.out.println("balance" + " " + sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
                             int sym_accountid=Integer.parseInt(x.getNodeValue());
                             System.out.println(x.getNodeName()+" "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
-                            toCheck.put("Sym",position);
+                            toCheck.put("createPosition",position);
                         }
                     }
                 }
                 break;
-
             }
         }
     }
@@ -93,17 +97,17 @@ public class Proxy {
                     }
                 }                               
                 Order order=new Order(account_id,symbol,amount,limit);
-                toCheck.put("order",order);
+                toCheck.put("newOrder",order);
                 break;
             case "query":
                 int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println(query_transaction_id);
-                toCheck.put("query",query_transaction_id);
+                toCheck.put("queryOrder",query_transaction_id);
                 break;
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println(cancel_transaction_id);
-                toCheck.put("cancel",cancel_transaction_id);
+                toCheck.put("cancelOrder",cancel_transaction_id);
                 break;
             }
         }

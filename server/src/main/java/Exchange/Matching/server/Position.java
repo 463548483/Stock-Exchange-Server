@@ -10,4 +10,15 @@ public class Position {
         this.account_id=account_id;
     }
 
+    public String getSym(){
+        return this.symbol;
+    }
+
+    public int getAmount(){
+        return this.amount;
+    }
+
+    public int getID(){
+        return this.account_id;
+    }
 }
