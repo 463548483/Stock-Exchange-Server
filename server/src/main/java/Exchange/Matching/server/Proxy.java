@@ -54,11 +54,11 @@ public class Proxy {
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
                         int sym_amount=Integer.parseInt(sym_child.getTextContent());
-                        System.out.println("balance" + " " + sym_child.getTextContent());
+                        System.out.println("balance" + ": " + sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
                             int sym_accountid=Integer.parseInt(x.getNodeValue());
-                            System.out.println(x.getNodeName()+" "+x.getNodeValue());
+                            System.out.println(x.getNodeName()+": "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
                             toCheck.put("createPosition",position);
                         }
@@ -71,28 +71,28 @@ public class Proxy {
 
     public void transactions_parse(Node n) {
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
-        System.out.println(account_id);
+        System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "order":
                 NamedNodeMap account_attrs= child.getAttributes();
                 String symbol="error";
                 int amount=0;
-                Double limit=0.0;
+                int limit=0;
                 for(int j=0;j<account_attrs.getLength();j++){
                     Node x=account_attrs.item(j);
                     switch (x.getNodeName()){
                         case "sym":
                             symbol=x.getNodeValue();
-                            System.out.println(symbol);
+                            System.out.println("symbol: " + symbol);
                             break;
                         case "amount":
                             amount=Integer.parseInt(x.getNodeValue());
-                            System.out.println(amount);
+                            System.out.println("amount: " + amount);
                             break;
                         case "limit":
-                            limit=Double.parseDouble(x.getNodeValue());
-                            System.out.println(limit);
+                            limit=Integer.parseInt(x.getNodeValue());
+                            System.out.println("limit: " + limit);
                             break;
                     }
                 }                               
@@ -101,12 +101,12 @@ public class Proxy {
                 break;
             case "query":
                 int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println(query_transaction_id);
+                System.out.println("query_id: " + query_transaction_id);
                 toCheck.put("queryOrder",query_transaction_id);
                 break;
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println(cancel_transaction_id);
+                System.out.println("cancel_id: " + cancel_transaction_id);
                 toCheck.put("cancelOrder",cancel_transaction_id);
                 break;
             }

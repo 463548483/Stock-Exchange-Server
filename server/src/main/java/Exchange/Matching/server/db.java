@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.function.ObjLongConsumer;
 
+import com.google.common.collect.Ordering;
+
 public class db {
     private Connection connection;
 
@@ -76,7 +78,7 @@ public class db {
                 "AMOUNT INT," +
                 "BOUND INT," +
                 "STATUS VARCHAR," +
-                "TYPE VARCHAR," + 
+                "TYPE VARCHAR," +
                 "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
         st.executeUpdate(sql_sym);
@@ -125,10 +127,15 @@ public class db {
             st.executeUpdate(sql);
             st.close();
         }
-        if(obj instanceof Order){
+        if (obj instanceof Order) {
             Order temp = (Order) obj;
             Statement st = connection.createStatement();
-            String sql = "insert into order(account_id, symbol, amount, bound, status, type)";
+            String sql = "insert into order_all(account_id, symbol, amount, bound, status, type) values("
+                    + temp.getAccountID() + ", '" + temp.getSymbol() + "', " + temp.getAmount() + ", " + temp.getLimit()
+                    + ", '" + temp.getStatus() + "', '" + temp.getType() + "');";
+            // System.out.printf(sql);
+            st.executeUpdate(sql);
+            st.close();
         }
     }
 
@@ -146,25 +153,29 @@ public class db {
             String sql = "select * from position where position_d = " + temp.getID() + ";";
             res = st.executeQuery(sql);
             return res;
-        } else if (obj.getClass().equals(Number.class)) {
-            // query Order
+        } else if (obj instanceof Number) {
+            // query Orders
             int temp = (int) obj;
             Statement st = connection.createStatement();
-            String sql = "select * from order where order_id = " + temp + ";";
+            String sql = "select * from order_all where order_id = " + temp + ";";
             res = st.executeQuery(sql);
             return res;
         } else if (obj instanceof Order) {
+            // buy Orders
             Order temp = (Order) obj;
             Statement st = connection.createStatement();
-            // Buy Order: Always valid
-            if(temp.getAmount() >= 0){
-                return null; 
+            if (temp.getType() == "buy") {
+                String sql = "select * from order_all where symbol = '"
+                        + temp.getSymbol() + " and bound <= " + temp.getLimit()
+                        + " and status = 'open' and type = 'sell' order by bound asc;";
+                res = st.executeQuery(sql);
+                return res;
             }
             // Sell Order
-            else{
-                // TO DO: Change the Algorithm of Matching Orders
-                String sql = "select * from position where account_id = " + temp.getAccountID() + " and symbol = '"
-                + temp.getSymbol() + "' and amount >= " + temp.getAmount() + " and bound > " + temp.getLimit() + " and status = 'open' and type = 'buy');";
+            else {
+                String sql = "select * from order_all where symbol = '"
+                        + temp.getSymbol() + " and bound >= " + temp.getLimit()
+                        + " and status = 'open' and type = 'buy' order by bound desc;";
                 res = st.executeQuery(sql);
                 return res;
             }
@@ -172,21 +183,32 @@ public class db {
         return res;
     }
 
-    public String deleteData(Object obj) throws SQLException {
-        if (obj instanceof Order) {
+    public ResultSet checkSellOrder(Order order) throws SQLException {
+        ResultSet res = null;
+        Statement st = connection.createStatement();
+        String sql = "select * from position where account_id = " + order.getAccountID() + " and symbol = '"
+                + order.getSymbol() + "' and amount >= " + order.getAmount() + ";";
+        //System.out.println(sql);
+        res = st.executeQuery(sql);
+        return res;
+    }
+
+    public String cancelOrder(Object obj) throws SQLException {
+        if (obj instanceof Number) {
             // delete Order
             int temp = (Integer) obj;
-            Statement st = connection.createStatement();
-            try {
-                String sql = "delete * from Order where order_id = " + temp + ";";
-                st.executeUpdate(sql);
-            } catch (Exception e) {
-                String errmsg = "Error: Fail to delete the Order.";
-                e.printStackTrace();
+            ResultSet res = search(temp);
+            if (!res.next()) {
+                String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
                 return errmsg;
+            } else {
+                Statement st = connection.createStatement();
+                // String sql = "delete from order_all where order_id = " + temp + ";";
+                String sql = "update order_all set status = 'cancal' where order_id = " + temp + ";";
+                st.executeUpdate(sql);
+                String msg = "Successfully cancelled the Order.";
+                return msg;
             }
-            String msg = "Successfully delete the Order.";
-            return msg;
         }
         return null;
     }

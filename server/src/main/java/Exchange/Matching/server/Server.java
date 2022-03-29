@@ -90,7 +90,6 @@ public class Server {
                 e.printStackTrace();
             }finally{
                 try{
-
                     socket.close();
                 }catch(Exception e){}
             }

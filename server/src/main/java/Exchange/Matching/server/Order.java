@@ -1,16 +1,19 @@
 package Exchange.Matching.server;
 
+import java.time.Instant;
+
 public class Order {
     //private int order_id; // for query & cancel
     private int account_id;
     private String symbol;
     private int amount;
-    private double limit;
+    private int limit;
     private String status;
     private String type;
+    private long time;
 
     // For create new Order
-    public Order(int account_id,String symbol, int amount,double limit){
+    public Order(int account_id,String symbol, int amount,int limit){
         this.account_id=account_id;
         this.symbol=symbol;
         this.amount= Math.abs(amount);
@@ -22,6 +25,7 @@ public class Order {
         else{
             this.type = "sell";
         }
+        this.time = Instant.now().getEpochSecond();
     }
 
     // For query & cancel Order
