@@ -28,13 +28,13 @@ public class CheckExcute {
                 //System.out.println("Create Position case");
                 return visit((Position) e.getValue());
             case "newOrder":
-                System.out.println("Create New Order");
+                //System.out.println("Create New Order");
                 return visit((Order) e.getValue());
             case "queryOrder":
-                System.out.println("Query Order");
+                //System.out.println("Query Order");
                 return visit((Integer)e.getValue(), 0);
             case "cancelOrder":
-                System.out.println("Cancel Order");
+                //System.out.println("Cancel Order");
                 return visit((Integer)e.getValue(), 1);
             default:
                 return null;
@@ -46,7 +46,7 @@ public class CheckExcute {
         if(action_flag == query_flag){
             ResultSet res = stockDB.search(transactions_id);
             if(!res.next()){
-                String errmsg = "The queried Order does not exist.";
+                String errmsg = "Error: The queried Order does not exist.";
                 System.out.println(errmsg);
                 return errmsg;
             }
@@ -105,7 +105,7 @@ public class CheckExcute {
     // handle new Order
     public String visit(Order order) throws SQLException {
         // check if the Order is Valid or Not
-        System.out.println("The type of the new order is: " + order.getType());
+        // System.out.println("The type of the new order is: " + order.getType());
         // Buy Order: The account must exist.
         if(order.getType() == "buy"){
             Account account_temp = new Account(order.getAccountID(),0);
@@ -118,12 +118,12 @@ public class CheckExcute {
                 stockDB.insertData(order);
             }
             else{
-                String errmsg = "The Account of the Order does not exist.";
+                String errmsg = "Error: The Account of the Order does not exist.";
                 System.out.println(errmsg);
                 return errmsg;  
             }
         }
-        // Sell Order: account, sym, amount
+        // Sell Order: check account, sym, amount
         else{
             ResultSet res_temp = stockDB.checkSellOrder(order);
             if(res_temp.next()){
@@ -133,14 +133,17 @@ public class CheckExcute {
                 stockDB.insertData(order);
             }
             else{
-                String errmsg = "The Sell Order is invalid.";
+                String errmsg = "Error: The Sell Order is invalid.";
                 System.out.println(errmsg);
                 return errmsg;     
             }
         }
         // Order Matching
-        
+        ResultSet res = stockDB.search(order);
+        while(order.getStatus() == "open"){
 
+        }
+        // update balance of Buyer & Seller
 
         return null;
     }
