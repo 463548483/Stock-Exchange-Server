@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 public class Account {
     private int id;
-    private int balance;
+    private double balance;
     private ArrayList<Position> positions;
 
-    public Account(int id, int balance){
+    public Account(int id, double balance){
         this.id = id;
         this.balance = balance;
         this.positions=new ArrayList<Position>();
@@ -17,7 +17,7 @@ public class Account {
         return this.id;
     }
     
-    public int getBalance(){
+    public double getBalance(){
         return this.balance;
     }
 

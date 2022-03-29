@@ -106,21 +106,31 @@ public class CheckExcute {
     public String visit(Order order) throws SQLException {
         // check if the Order is Valid or Not
         // System.out.println("The type of the new order is: " + order.getType());
-        // Buy Order: The account must exist.
+        // Buy Order: account, symbol
         if(order.getType() == "buy"){
+            // Check if the Buyer Account exists.
             Account account_temp = new Account(order.getAccountID(),0);
             System.out.println("AccountID: " + account_temp.getID());
             ResultSet res_temp = stockDB.search(account_temp);
-            if(res_temp.next()){
+            // Check if the symbol exsits.
+            Symbol symbol_temp = new Symbol(order.getSymbol());
+            System.out.println("Symbol: " + symbol_temp.getSym());
+            ResultSet res_temp_sym = stockDB.search(symbol_temp);
+
+            if(!res_temp.next()){
+                String errmsg = "Error: The Account of the Order does not exist.";
+                System.out.println(errmsg);
+                return errmsg;  
+            }else if(!res_temp_sym.next()){
+                String errmsg = "Error: The Symbol of the Order does not exist.";
+                System.out.println(errmsg);
+                return errmsg;  
+            }
+            else{
                 res_temp.previous();
                 String msg = "The Buy Order is valid.";
                 System.out.println(msg);
                 stockDB.insertData(order);
-            }
-            else{
-                String errmsg = "Error: The Account of the Order does not exist.";
-                System.out.println(errmsg);
-                return errmsg;  
             }
         }
         // Sell Order: check account, sym, amount

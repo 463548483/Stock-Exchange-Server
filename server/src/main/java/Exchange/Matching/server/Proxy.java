@@ -28,7 +28,7 @@ public class Proxy {
             switch (child.getNodeName()){
             case "account":
                 int id=-1;
-                int balance=-1;
+                double balance=-1;
                 NamedNodeMap account_attrs= child.getAttributes();
                 for(int j=0;j<account_attrs.getLength();j++){
                     Node x=account_attrs.item(j);
@@ -37,7 +37,7 @@ public class Proxy {
                             id=Integer.parseInt(x.getNodeValue());
                             break;
                         case "balance":
-                            balance=Integer.parseInt(x.getNodeValue());
+                            balance=Double.parseDouble(x.getNodeValue());
                             break;
                     }
                 } 
@@ -53,7 +53,7 @@ public class Proxy {
                 for (Node sym_child = child.getFirstChild(); sym_child != null; sym_child = sym_child.getNextSibling()){
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
-                        int sym_amount=Integer.parseInt(sym_child.getTextContent());
+                        double sym_amount=Double.parseDouble(sym_child.getTextContent());
                         System.out.println("balance" + ": " + sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
@@ -77,8 +77,8 @@ public class Proxy {
             case "order":
                 NamedNodeMap account_attrs= child.getAttributes();
                 String symbol="error";
-                int amount=0;
-                int limit=0;
+                double amount=0.0;
+                double limit=0.0;
                 for(int j=0;j<account_attrs.getLength();j++){
                     Node x=account_attrs.item(j);
                     switch (x.getNodeName()){
@@ -87,11 +87,11 @@ public class Proxy {
                             System.out.println("symbol: " + symbol);
                             break;
                         case "amount":
-                            amount=Integer.parseInt(x.getNodeValue());
+                            amount=Double.parseDouble(x.getNodeValue());
                             System.out.println("amount: " + amount);
                             break;
                         case "limit":
-                            limit=Integer.parseInt(x.getNodeValue());
+                            limit=Double.parseDouble(x.getNodeValue());
                             System.out.println("limit: " + limit);
                             break;
                     }

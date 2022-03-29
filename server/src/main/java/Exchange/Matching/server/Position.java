@@ -2,11 +2,12 @@ package Exchange.Matching.server;
 
 public class Position {
     private String symbol;
-    private int amount;
+    private double amount;
     private int account_id;
-    public Position(String symbol,int amount,int account_id){
+    
+    public Position(String symbol,double sym_amount,int account_id){
         this.symbol=symbol;
-        this.amount=amount;
+        this.amount=sym_amount;
         this.account_id=account_id;
     }
 
@@ -14,7 +15,7 @@ public class Position {
         return this.symbol;
     }
 
-    public int getAmount(){
+    public double getAmount(){
         return this.amount;
     }
 
