@@ -14,77 +14,65 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Scanner;
+
 public class Client extends Socket {
-    private static final String hostName="127.0.0.1";
-    private static final int portNum=12345;
+    private static final String hostName = "127.0.0.1";
+    private static final int portNum = 12345;
     private Socket socket;
-    private InputStream filein;
     private DataOutputStream toTrans;
 
     public Client() throws UnknownHostException, IOException {
-        super(hostName,portNum);
-        this.socket=this;
+        super(hostName, portNum);
+        this.socket = this;
         System.out.println("Client connected");
     }
 
     public void send(String filename) throws Exception {
-        try{
 
-            filein=getClass().getClassLoader().getResourceAsStream(filename);//new FileInputStream(file);
-            int fileLen=filein.available();
-            toTrans=new DataOutputStream(socket.getOutputStream());
-
-            System.out.println("send len "+fileLen);
-            toTrans.writeLong(fileLen);
-            toTrans.flush();
-            
-
-            System.out.println("start send xml");
-            byte[] bytes=new byte[1024];
-            for (;;){
-                int n=filein.read(bytes,0,bytes.length);
-                if (n==-1){
-                    break;
-                }
-                toTrans.write(bytes,0,n);
-                toTrans.flush();
+        try (Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(filename))) {
+            toTrans = new DataOutputStream(socket.getOutputStream());
+            String str="";
+            while (scanner.hasNextLine()) {
+                str+=scanner.nextLine();
             }
-            System.out.println("finish client send");
+            byte[] data = str.getBytes();
+            int len = data.length + 4;
+            toTrans.writeInt(len);
+            toTrans.flush();
+            toTrans.write(data);
+            toTrans.flush();
 
-        }catch(Exception e){
-                e.printStackTrace();
-        }finally{
-                if(filein!=null){
-                    filein.close();
-                }
-                if (toTrans!=null){
-                    toTrans.close();
-                }
-        }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
     }
-    
-    public void receive() throws IOException{
-        try{
-            BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            while (true){
-                String str=bufferedReader.readLine();
-                if (str==null){
+
+    public void receive() throws IOException {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
+            while (true) {
+                String str = bufferedReader.readLine();
+                if (str == null) {
                     break;
                 }
                 System.out.println(str);
             }
             socket.close();
-        }catch(Exception e){
+            toTrans.close();
+            bufferedReader.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void main(String[] args){
-        try(Client client=new Client()){
+    public static void main(String[] args) {
+        try (Client client = new Client()) {
             client.send(args[0]);
             client.receive();
-        }catch(Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();           
         }
+
     }
 }

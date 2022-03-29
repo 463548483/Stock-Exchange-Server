@@ -1,5 +1,6 @@
 package Exchange.Matching.server;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.xml.parsers.*;
@@ -15,7 +16,7 @@ public class Proxy {
     private Map<String,Object> toCheck;
 
     public Proxy(){
-        toCheck=new HashMap<String,Object>();
+        toCheck=new LinkedHashMap<String,Object>();
     }
 
     public Map<String,Object> getTocheck(){
