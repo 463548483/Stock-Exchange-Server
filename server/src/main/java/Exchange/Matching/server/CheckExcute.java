@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 
 import javax.naming.directory.SearchControls;
+import javax.naming.spi.DirStateFactory.Result;
 
 public class CheckExcute {
 
@@ -108,21 +109,22 @@ public class CheckExcute {
         // System.out.println("The type of the new order is: " + order.getType());
         // Buy Order: account, symbol
         if(order.getType() == "buy"){
-            // Check if the Buyer Account exists.
+            // Check if the Buyer Account exists and the balance is enough.
             Account account_temp = new Account(order.getAccountID(),0);
             System.out.println("AccountID: " + account_temp.getID());
-            ResultSet res_temp = stockDB.search(account_temp);
+            ResultSet res_temp = stockDB.checkBuyOrder(order);
+
             // Check if the symbol exsits.
             Symbol symbol_temp = new Symbol(order.getSymbol());
             System.out.println("Symbol: " + symbol_temp.getSym());
             ResultSet res_temp_sym = stockDB.search(symbol_temp);
 
             if(!res_temp.next()){
-                String errmsg = "Error: The Account of the Order does not exist.";
+                String errmsg = "Error: The Buy Order is not valid.";
                 System.out.println(errmsg);
                 return errmsg;  
             }else if(!res_temp_sym.next()){
-                String errmsg = "Error: The Symbol of the Order does not exist.";
+                String errmsg = "Error: The Symbol of the Buy Order does not exist.";
                 System.out.println(errmsg);
                 return errmsg;  
             }
@@ -148,13 +150,10 @@ public class CheckExcute {
                 return errmsg;     
             }
         }
-        // Order Matching
+
+        // Handle Order Matching
         ResultSet res = stockDB.search(order);
-        while(order.getStatus() == "open"){
-
-        }
-        // update balance of Buyer & Seller
-
+        
         return null;
     }
 

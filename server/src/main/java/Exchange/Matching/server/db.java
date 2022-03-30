@@ -85,6 +85,7 @@ public class db {
                 "TIME BIGINT," +
                 "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
+        // Store trades info
         String sql_exectute_order = "CREATE TABLE ORDER_EXECUTE(" +
                 "ORDER_ID SERIAL PRIMARY KEY," +
                 "BUYER_ID INT," +
@@ -127,7 +128,7 @@ public class db {
             String sql = "INSERT INTO SYM (SYMBOL) VALUES('" + temp.getSym() + "');";
             // System.out.println(sql);
             st.executeUpdate(sql);
-            st.close();
+            //st.close();
             connection.commit();
         }
         if (obj instanceof Account) {
@@ -137,7 +138,7 @@ public class db {
                     + ");";
             // System.out.println(sql);
             st.executeUpdate(sql);
-            st.close();
+            //st.close();
             connection.commit();
         }
         if (obj instanceof Position) {
@@ -147,7 +148,7 @@ public class db {
             String sql = "insert into position(account_id, symbol, amount) values(" + temp.getID() + ", '"
                     + temp.getSym() + "', " + temp.getAmount() + ");";
             st.executeUpdate(sql);
-            st.close();
+            //st.close();
             connection.commit();
         }
         if (obj instanceof Order) {
@@ -158,7 +159,7 @@ public class db {
                     + ", '" + temp.getStatus() + "', '" + temp.getType() + "');";
             // System.out.printf(sql);
             st.executeUpdate(sql);
-            st.close();
+            //st.close();
             connection.commit();
         }
         if (obj instanceof ExecuteOrder) {
@@ -171,7 +172,7 @@ public class db {
                     + ", " + temp.getTime() + ");";
             // System.out.printf(sql);
             st.executeUpdate(sql);
-            st.close();
+            //st.close();
             connection.commit();
         }
     }
@@ -183,7 +184,7 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "select * from sym where symbol = '" + temp.getSym() + "';";
             res = st.executeQuery(sql);
-            st.close();
+            //st.close();
             connection.commit();
             return res;
         } else if (obj instanceof Account) {
@@ -191,7 +192,7 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "select * from account where account_id = " + temp.getID() + ";";
             res = st.executeQuery(sql);
-            st.close();
+            //st.close();
             connection.commit();
             return res;
         } else if (obj instanceof Position) {
@@ -199,7 +200,7 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "select * from position where position_d = " + temp.getID() + ";";
             res = st.executeQuery(sql);
-            st.close();
+            //st.close();
             connection.commit();
             return res;
         } else if (obj instanceof Number) {
@@ -208,37 +209,49 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "select * from order_all where order_id = " + temp + ";";
             res = st.executeQuery(sql);
-            st.close();
+            //st.close();
             connection.commit();
             return res;
         } else if (obj instanceof Order) {
             // buy Orders
             Order temp = (Order) obj;
             Statement st = connection.createStatement();
+            String sql = "";
             if (temp.getType() == "buy") {
-                String sql = "select * from order_all where symbol = '"
+                sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + " and bound <= " + temp.getLimit()
                         + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
+            }
+            else{
+                sql = "select * from order_all where symbol = '"
+                + temp.getSymbol() + " and bound >= " + temp.getLimit()
+                + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
+            }
                 res = st.executeQuery(sql);
                 // Order Matching
-                Matching matching = new Matching(res, temp);
-
-                st.close();
+                Matching matching = new Matching(temp,res);
+                // Fill Order_Execute Table
+                ArrayList<ExecuteOrder> execute_list = matching.getExecuteList();
+                for(ExecuteOrder eorder: execute_list){
+                    insertData(eorder);
+                    double balance_change = eorder.getAmount() * eorder.getPrice();
+                    // update balance of Buyer & Seller
+                    Account buyer_account_temp = new Account(eorder.getBuyerID(), -balance_change);
+                    Account seller_account_temp = new Account(eorder.getSellerID(), balance_change);
+                    updateData(buyer_account_temp);
+                    updateData(seller_account_temp);
+                }
+                // Update Order in Order_all Table
+                Order new_order = matching.getOrder();
+                updateData(new_order);
+                ArrayList<Order> sell_order_list = matching.getSellList();
+                for(Order sorder: sell_order_list){
+                    updateData(sorder);
+                }
+                //st.close();
                 connection.commit();
                 return res;
             }
-            // Sell Order
-            else {
-                String sql = "select * from order_all where symbol = '"
-                        + temp.getSymbol() + " and bound >= " + temp.getLimit()
-                        + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
-                res = st.executeQuery(sql);
-
-                st.close();
-                connection.commit();
-                return res;
-            }
-        } 
         /*
         else if (obj instanceof ExecuteOrder) {
             ExecuteOrder temp = (ExecuteOrder) obj;
@@ -250,6 +263,45 @@ public class db {
             return res;
         }
         */
+            return res;
+        }
+
+    public void updateData(Object obj) throws SQLException{
+        if (obj instanceof Order) {
+            Order temp = (Order) obj;
+            Statement st = connection.createStatement();
+            String sql = "update order_all set amount = " + temp.getAmount() + " where order_id = " + temp.getOrderID() +";";
+            // System.out.println(sql);
+            st.executeUpdate(sql);
+            //st.close();
+            connection.commit();
+        }
+        if(obj instanceof Account){
+            Account temp = (Account) obj;
+            Statement st = connection.createStatement();
+            String sql = "select * from account where account_id = " + temp.getID();
+            ResultSet res = st.executeQuery(sql);
+            double balance = res.getDouble("balance");
+            double new_balance = balance + temp.getBalance();
+
+            String sql_update = "update account set balance = " + new_balance + " where account_id = " + temp.getID() +";";
+            // System.out.println(sql);
+            st.executeUpdate(sql_update);
+            //st.close();
+            connection.commit();
+        }
+    }
+
+    public ResultSet checkBuyOrder(Order order) throws SQLException{
+        ResultSet res = null;
+        double need_balance = order.getAmount() * order.getLimit();
+        Statement st = connection.createStatement();
+        String sql = "select * from account where account_id = " + order.getAccountID() + " and balance >= "
+                + need_balance + ";";
+        // System.out.println(sql);
+        res = st.executeQuery(sql);
+        //st.close();
+        connection.commit();
         return res;
     }
 
@@ -260,7 +312,7 @@ public class db {
                 + order.getSymbol() + "' and amount >= " + order.getAmount() + ";";
         // System.out.println(sql);
         res = st.executeQuery(sql);
-        st.close();
+        //st.close();
         connection.commit();
         return res;
     }
@@ -276,9 +328,9 @@ public class db {
             } else {
                 Statement st = connection.createStatement();
                 // String sql = "delete from order_all where order_id = " + temp + ";";
-                String sql = "update order_all set status = 'cancal' where order_id = " + temp + ";";
+                String sql = "update order_all set status = 'cancel' where order_id = " + temp + ";";
                 st.executeUpdate(sql);
-                st.close();
+                //st.close();
                 connection.commit();
                 String msg = "Successfully cancelled the Order.";
                 return msg;
