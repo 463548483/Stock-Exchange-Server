@@ -8,17 +8,18 @@ import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
 
 public class Matching {
 
-    private Order order; 
+    private Order order;
     private ArrayList<Order> order_list;
-    private ArrayList<ExecuteOrder> execute_list;
-    private ArrayList<Order> sell_order_list; // executed sell order
+    private ArrayList<ExecuteOrder> execute_list; 
+    private ArrayList<Order> sell_order_list; 
 
     public Matching(Order order, ResultSet res) throws SQLException{
         this.order = order;
         // 1. Mapping ResultSet
         this.order_list = new ArrayList<Order>();
-        // Store the Execute info of buy order
+        // Store the Execute info of buy orders
         this.execute_list = new ArrayList<ExecuteOrder>();
+        // Store the executed sell orders
         this.sell_order_list = new ArrayList<Order>();
         mapOrder(res);
         matchOrder();
