@@ -2,7 +2,9 @@ package Exchange.Matching.server;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -10,51 +12,41 @@ import java.util.function.Function;
 import javax.naming.directory.SearchControls;
 import javax.naming.spi.DirStateFactory.Result;
 
+import com.google.common.xml.XmlEscapers;
+
 public class CheckExcute {
 
     private db stockDB;
-    private int query_flag = 0;
-    private int cancel_flag = 1;
+    private final int query_flag = 0;
+    private final int cancel_flag = 1;
+    private Matching matching;
+    private XMLgenerator xmLgenerator;
 
-    public CheckExcute(db stockDB) {
+    public CheckExcute(db stockDB, XMLgenerator xmLgenerator) {
         this.stockDB = stockDB;
+        this.xmLgenerator=xmLgenerator;
     }
 
-    public String visit(Entry<String, Object> e) throws SQLException {
-        switch (e.getKey()) {
-            case "createAccount":
-                //System.out.println("Create Account case");
-                return visit((Account) e.getValue());
-            case "createPosition":
-                //System.out.println("Create Position case");
-                return visit((Position) e.getValue());
-            case "newOrder":
-                //System.out.println("Create New Order");
-                return visit((Order) e.getValue());
-            case "queryOrder":
-                //System.out.println("Query Order");
-                return visit((Integer)e.getValue(), 0);
-            case "cancelOrder":
-                //System.out.println("Cancel Order");
-                return visit((Integer)e.getValue(), 1);
-            default:
-                return null;
-        }
-    }
 
     // For query Order & delete Order
-    public String visit(int transactions_id, int action_flag) throws SQLException {
+    public void visit(int transactions_id, int action_flag) throws SQLException {
         if(action_flag == query_flag){
             ResultSet res = stockDB.search(transactions_id);
             if(!res.next()){
-                String errmsg = "Error: The queried Order does not exist.";
-                System.out.println(errmsg);
-                return errmsg;
+                Order queOrder=new Order(transactions_id);
+                queOrder.setErrorMessage("Error: The queried Order does not exist."); 
+                xmLgenerator.lineXML(queOrder, "error");
             }
             else{
                 String msg = "Found the query Order.";
                 System.out.println(msg);
-                return msg;
+                // order_list: open/cancel orders in order_all
+                ArrayList<Order> order_list = matching.mapOrder(res);
+                for(Order order: order_list){
+                    xmLgenerator.lineXML(order, order.getStatus());
+                }
+                // execute_list: executed orders in order_execute
+                
             }
         }
         if (action_flag == cancel_flag){
@@ -63,27 +55,29 @@ public class CheckExcute {
             if(res == null){
                 System.out.println("The res is null.");
             }
-            return res;
+            // for(Order order: order_list){
+            //     xmLgenerator.lineXML(order, order.getStatus());
+            // }
         }
         // canceled all open transaction
-        return null;
     }
 
 
-    public String visit(Account account) throws SQLException {
+    public void visit(Account account) throws SQLException {
         ResultSet res = stockDB.search(account);
         if (res.next()) {
-            String errmsg = "Error: Account already exists.";
-            return errmsg;
+            account.setErrorMessage("Error: Account already exists"); 
+            xmLgenerator.lineXML(account, "error");
         }
         // create account
         else {
             stockDB.insertData(account);
+            xmLgenerator.lineXML(account, "create");
         }
-        return null;
+        
     }
 
-    public String visit(Position position) throws SQLException {
+    public void visit(Position position) throws SQLException {
         Account account_temp = new Account(position.getID(), 0);
         Symbol symbol_temp = new Symbol(position.getSym());
         
@@ -91,8 +85,8 @@ public class CheckExcute {
         ResultSet res_sym = stockDB.search(symbol_temp);
 
         if (!res_account.next()) {
-            String errmsg = "Error: Account does not exist.";
-            return errmsg;
+            position.setErrorMessage("Error: Account does not exist"); 
+            xmLgenerator.lineXML(position, "error");
         } else {
             // create symbol
             if (res_sym == null) {
@@ -100,12 +94,13 @@ public class CheckExcute {
             }
             // create position
             stockDB.insertData(position);
+            xmLgenerator.lineXML(position, "create");
         }
-        return null;
+        
     }
 
     // handle new Order
-    public String visit(Order order) throws SQLException {
+    public void visit(Order order) throws SQLException {
         // check if the Order is Valid or Not
         // System.out.println("The type of the new order is: " + order.getType());
         // Buy Order: account, symbol
@@ -119,19 +114,18 @@ public class CheckExcute {
             System.out.println("Symbol: " + symbol_temp.getSym());
             ResultSet res_temp_sym = stockDB.search(symbol_temp);
             if(!res_temp.next()){
-                String errmsg = "Error: The Buy Order is not valid.";
-                System.out.println(errmsg);
-                return errmsg;  
+                order.setErrorMessage("Error: The Buy Order is not valid"); 
+                xmLgenerator.lineXML(order, "error");
             }else if(!res_temp_sym.next()){
-                String errmsg = "Error: The Symbol of the Buy Order does not exist.";
-                System.out.println(errmsg);
-                return errmsg;  
+                order.setErrorMessage("Error: The Symbol of the Buy Order does not exist"); 
+                xmLgenerator.lineXML(order, "error"); 
             }
             else{
-                res_temp.previous();
+                res_temp.previous(); 
                 String msg = "The Buy Order is valid.";
                 System.out.println(msg);
                 stockDB.insertData(order);
+
             }
         }
         // Sell Order: check account, sym, amount
@@ -142,18 +136,18 @@ public class CheckExcute {
                 String msg = "The Sell Order is valid.";
                 System.out.println(msg);
                 stockDB.insertData(order);
+
             }
             else{
-                String errmsg = "Error: The Sell Order is invalid.";
-                System.out.println(errmsg);
-                return errmsg;     
+                order.setErrorMessage("Error: The Sell Order is invalid"); 
+                xmLgenerator.lineXML(order, "error");  
             }
         }
 
         // Handle Order Matching
         ResultSet res = stockDB.search(order);
 
-        return null;
+        xmLgenerator.lineXML(order, "opened");
     }
 
 }

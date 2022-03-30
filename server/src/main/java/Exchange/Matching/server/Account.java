@@ -4,16 +4,15 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class Account {
+public class Account extends XMLObject{
     private int id;
     private double balance;
-    private String errorMessage;
+
 
 
     public Account(int id, double balance){
         this.id = id;
         this.balance = balance;
-        this.errorMessage=null;
     }
 
     public int getID(){
@@ -24,17 +23,11 @@ public class Account {
         return this.balance;
     }
 
-    public String getErrorMessage(){
-        return errorMessage;
-    }
 
-    public void setErrorMessage(String msg){
-        errorMessage=msg;
-    }
-
-    public Map<String,Object> getAttribute(){
-        Map<String,Object> map=new LinkedHashMap<String,Object>();
-        map.put("id",id);
+    @Override
+    public Map<String,String> getAttribute(){
+        Map<String,String> map=new LinkedHashMap<String,String>();
+        map.put("id",Integer.toString(id));
         return map;
     }
 

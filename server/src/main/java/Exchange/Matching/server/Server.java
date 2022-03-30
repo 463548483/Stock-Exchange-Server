@@ -31,17 +31,14 @@ import org.w3c.dom.NodeList;
 
 public class Server {
     private ServerSocket socket;
-    private CheckExcute checkExcute;
-    private Proxy proxy;
     private static int task_id;
     private static db stockDB;
 
     public Server() throws IOException, SQLException{
         socket=new ServerSocket(12345);
-        proxy=new Proxy();
         task_id=0;
         stockDB = new db();
-        checkExcute = new CheckExcute(stockDB);
+
     }
 
     public void listen() throws Exception {
@@ -54,10 +51,12 @@ public class Server {
         private Socket socket;
         private DataInputStream Trans;
         private int task_id;
+        private Proxy proxy;
 
         public Task(Socket socket, int task_id) {
             this.socket = socket;
             this.task_id = task_id;
+            proxy=new Proxy(stockDB);
 
         }
 
@@ -92,9 +91,6 @@ public class Server {
                     case "transactions":
                         proxy.transactions_parse(doc.getFirstChild());
                         break;
-                }
-                for (Entry<String, Object> e : proxy.getTocheck().entrySet()) {
-                    checkExcute.visit(e);
                 }
                 System.out.println("finish generate response");
                 send();

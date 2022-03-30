@@ -25,6 +25,17 @@ public class ExecuteOrder {
         this.time = Instant.now().getEpochSecond();
     }
 
+    public ExecuteOrder(int bid, int sid, int buyer_trans_id, int seller_trans_id, String symbol, double amount, double price, long time){
+        this.buyer_id = bid;
+        this.seller_id = sid;
+        this.buyer_trans_id = buyer_trans_id;
+        this.seller_trans_id = seller_trans_id;
+        this.symbol = symbol;
+        this.amount = amount;
+        this.price = price;
+        this.time = time;
+    }
+
     public int getBuyerID(){
         return buyer_id;
     }

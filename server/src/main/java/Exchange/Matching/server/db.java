@@ -12,12 +12,14 @@ import com.google.common.collect.Ordering;
 
 public class db {
     private Connection connection;
+    private Matching matching;
 
     public db() throws SQLException {
         this.connection = buildDBConnection();
         connection.setAutoCommit(false);
         deleteTables();
         buildTables();
+        this.matching = new Matching();
     }
 
     /*
@@ -159,6 +161,9 @@ public class db {
                     + ", '" + temp.getStatus() + "', '" + temp.getType() + "');";
             // System.out.printf(sql);
             st.executeUpdate(sql);
+            String getTransactionID_sql = "select lastval();";
+            ResultSet res = st.executeQuery(getTransactionID_sql);
+            // String transaction_id = (String)
             // st.close();
             connection.commit();
         }
@@ -215,6 +220,7 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "select * from order_all where order_id = " + temp + ";";
             res = st.executeQuery(sql);
+            // String sql_execute = "select * from order_execute where "
             // st.close();
             connection.commit();
             return res;
@@ -257,18 +263,30 @@ public class db {
             connection.commit();
             return res;
         }
-        /*
-         * else if (obj instanceof ExecuteOrder) {
-         * ExecuteOrder temp = (ExecuteOrder) obj;
-         * Statement st = connection.createStatement();
-         * String sql = "select * from order_execute where order_id = " + temp + ";";
-         * res = st.executeQuery(sql);
-         * st.close();
-         * connection.commit();
-         * return res;
-         * }
-         */
         return res;
+    }
+
+    public ArrayList<Order> searchOrder(int transaction_id) throws SQLException {
+        ArrayList<Order> query_order_list = new ArrayList<Order>();
+        ResultSet res = search(transaction_id);
+        query_order_list = matching.mapOrder(res);
+        return query_order_list;
+    }
+
+    public ArrayList<ExecuteOrder> searchExecuteOrder(int transaction_id, String type) throws SQLException {
+        ArrayList<ExecuteOrder> query_execute_order = new ArrayList<ExecuteOrder>();
+        Statement st = connection.createStatement();
+        String sql = "";
+        if (type == "buy") {
+            sql = "select * from order_execute where buyer_trans_id = " + transaction_id + ";";
+        } else if (type == "sell") {
+            sql = "select * from order_execute where seller_trans_id = " + transaction_id + ";";
+        }
+        ResultSet res = st.executeQuery(sql);
+        // st.close();
+        query_execute_order = matching.mapExecuteOrder(res);
+        connection.commit();
+        return query_execute_order;
     }
 
     /*
@@ -332,23 +350,19 @@ public class db {
     }
 
     // cancel order
-    public String cancelOrder(Object obj) throws SQLException {
-        if (obj instanceof Number) {
-            int temp = (Integer) obj;
-            ResultSet res = search(temp);
-            if (!res.next()) {
-                String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
-                return errmsg;
-            } else {
-                Statement st = connection.createStatement();
-                String sql = "update order_all set status = 'cancel' where order_id = " + temp + ";";
-                st.executeUpdate(sql);
-                // st.close();
-                connection.commit();
-                String msg = "Successfully canceled the Order.";
-                return msg;
-            }
+    public String cancelOrder(int transaction_id) throws SQLException {
+        ResultSet res = search(transaction_id);
+        if (!res.next()) {
+            String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
+            return errmsg;
+        } else {
+            Statement st = connection.createStatement();
+            String sql = "update order_all set status = 'cancel' where order_id = " + transaction_id + ";";
+            st.executeUpdate(sql);
+            // st.close();
+            connection.commit();
+            String msg = "Successfully canceled the Order.";
+            return msg;
         }
-        return null;
     }
 }

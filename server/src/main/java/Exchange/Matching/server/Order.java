@@ -1,23 +1,21 @@
 package Exchange.Matching.server;
 
-<<<<<<< HEAD
 import java.time.Instant;
-=======
 import java.util.LinkedHashMap;
 import java.util.Map;
->>>>>>> origin/updatethread
 
-public class Order {
+public class Order extends XMLObject{
     private int order_id;
     private int account_id;
     private String symbol;
     private double amount;
     private double limit;
-<<<<<<< HEAD
     private String status;
     private String type;
     private long time;
 
+    public Order(){}
+    
     // For create new Order
     public Order(int account_id,String symbol, double amount,double limit){
         this.account_id=account_id;
@@ -32,11 +30,8 @@ public class Order {
             this.type = "sell";
         }
         this.time = Instant.now().getEpochSecond();
+        
     }
-=======
-    private int transactions_id;
-    private String errorMessage;
->>>>>>> origin/updatethread
 
     // For Mapping SQL 
     public Order(int account_id,String symbol, double amount,double limit, String status, String type){
@@ -44,7 +39,6 @@ public class Order {
         this.symbol=symbol;
         this.amount= Math.abs(amount);
         this.limit=limit;
-<<<<<<< HEAD
         this.status = status;
         this.type = type;
     }
@@ -60,12 +54,14 @@ public class Order {
         this.time = time;
     }
 
+    // For Order response
+    public Order(int account_id){
+        this.account_id=account_id;
+    }
+
     // Get from Database
     public void setOrderID(int id){
         this.order_id = id;
-=======
-        this.transactions_id=-1;//init error id
->>>>>>> origin/updatethread
     }
 
     public void setAmount(double amount){
@@ -92,7 +88,6 @@ public class Order {
         return limit;
     }
 
-<<<<<<< HEAD
     public String getStatus(){
         return status;
     }
@@ -107,28 +102,14 @@ public class Order {
 
     public int getOrderID() {
         return order_id;
-=======
-    public void setTransactionId(int id){
-        transactions_id=id;
     }
 
-    public String getErrorMessage(){
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String msg){
-        errorMessage=msg;
-    }
-
-    public Map<String,Object> getAttribute(){
-        Map<String,Object> map=new LinkedHashMap<String,Object>();
+    @Override
+    public Map<String,String> getAttribute(){
+        Map<String,String> map=new LinkedHashMap<String,String>();
         map.put("SYM",symbol);
-        map.put("AMT", amount);
-        map.put("LMT",limit);
-        if (transactions_id!=-1){
-            map.put("TRANS_ID",transactions_id);
-        }
+        map.put("AMT", Double.toString(amount));
+        map.put("LMT",Double.toString(limit));
         return map;
->>>>>>> origin/updatethread
     }
 }

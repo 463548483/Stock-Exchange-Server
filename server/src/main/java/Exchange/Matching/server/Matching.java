@@ -13,6 +13,13 @@ public class Matching {
     private ArrayList<ExecuteOrder> execute_list; 
     private ArrayList<Order> sell_order_list; 
 
+    public Matching(){
+        this.order = new Order();
+        this.order_list = new ArrayList<Order>();
+        this.execute_list = new ArrayList<ExecuteOrder>();
+        this.sell_order_list = new ArrayList<Order>();
+    }
+
     public Matching(Order order, ResultSet res) throws SQLException{
         this.order = order;
         // 1. Mapping ResultSet
@@ -35,7 +42,9 @@ public class Matching {
         return order;
     }
 
-    public void mapOrder(ResultSet res) throws SQLException {
+
+    public ArrayList<Order> mapOrder(ResultSet res) throws SQLException {
+        ArrayList<Order> order_list = new ArrayList<Order>();
         while (res.next()) {
             int account_id = res.getInt("ACCOUNT_ID");
             String symbol = res.getString("SYMBOL");
@@ -46,7 +55,28 @@ public class Matching {
             Order order = new Order(account_id, symbol, amount, limit, status, type);
             order_list.add(order);
         }
+        return order_list;
     }
+
+    public ArrayList<ExecuteOrder> mapExecuteOrder(ResultSet res) throws SQLException {
+        ArrayList<ExecuteOrder> e_list = new ArrayList<ExecuteOrder>();
+        while (res.next()) {
+            int bid = res.getInt("BUYER_ID");
+            int sid = res.getInt("SELLER_ID");
+            int b_trans_id = res.getInt("BUYER_ORDER_ID");
+            int s_trans_id = res.getInt("SELLER_ORDER_ID");
+            String symbol = res.getString("SYMBOL");
+            double amount = res.getDouble("AMOUNT");
+            double limit = res.getDouble("BOUND");
+            //String status = res.getString("STATUS");
+            //String type = res.getString("TYPE");
+            long time = res.getLong("TIME");
+            ExecuteOrder order = new ExecuteOrder(bid, sid, b_trans_id, s_trans_id, symbol, amount, limit, time);
+            e_list.add(order);
+        }
+        return e_list;
+    }
+
 
     // 2. Find matching Orders
     public void matchOrder() {

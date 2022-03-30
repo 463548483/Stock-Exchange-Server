@@ -1,6 +1,9 @@
 package Exchange.Matching.server;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.*;
@@ -13,17 +16,23 @@ import org.w3c.dom.NodeList;
 
 
 public class Proxy {
-    private LinkedHashMap<String,Object> toCheck;
+    private List<Pair<Object,String>> response;
+    private CheckExcute checkExcute;
+    private XMLgenerator xmLgenerator;
+    private int query_flag = 0;
+    private int cancel_flag = 1;
 
-    public Proxy(){
-        toCheck=new LinkedHashMap<String,Object>();
+    public Proxy(db stockDB){
+        response=new LinkedList<Pair<Object,String>>();
+        XMLgenerator xmLgenerator=new XMLgenerator();
+        checkExcute=new CheckExcute(stockDB,xmLgenerator);
     }
 
-    public LinkedHashMap<String,Object> getTocheck(){
-        return toCheck;
+    public List<Pair<Object,String>> getresponse(){
+        return response;
     }
 
-    public void create_parse(Node n) {
+    public void create_parse(Node n) throws SQLException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -45,7 +54,8 @@ public class Proxy {
                 Account account=new Account(id,balance);
                 //System.out.println("id: " + id);
                 //System.out.println("balance: " + balance);
-                toCheck.put("createAccount",account);
+                checkExcute.visit(account);
+
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
@@ -60,16 +70,18 @@ public class Proxy {
                             int sym_accountid=Integer.parseInt(x.getNodeValue());
                             System.out.println(x.getNodeName()+": "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
-                            toCheck.put("createPosition",position);
+                            checkExcute.visit(position);
+
                         }
                     }
                 }
                 break;
             }
         }
+        xmLgenerator.DOMtoXML();
     }
 
-    public void transactions_parse(Node n) {
+    public void transactions_parse(Node n) throws SQLException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
         System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
@@ -97,19 +109,20 @@ public class Proxy {
                     }
                 }                               
                 Order order=new Order(account_id,symbol,amount,limit);
-                toCheck.put("newOrder",order);
+                checkExcute.visit(order);
                 break;
             case "query":
                 int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println("query_id: " + query_transaction_id);
-                toCheck.put("queryOrder",query_transaction_id);
+                checkExcute.visit(query_transaction_id,query_flag);
                 break;
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println("cancel_id: " + cancel_transaction_id);
-                toCheck.put("cancelOrder",cancel_transaction_id);
+                checkExcute.visit(cancel_transaction_id,cancel_flag);
                 break;
             }
         }
+        xmLgenerator.DOMtoXML();
     }
 }
