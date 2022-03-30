@@ -69,6 +69,7 @@ public class CheckExcute {
         return null;
     }
 
+
     public String visit(Account account) throws SQLException {
         ResultSet res = stockDB.search(account);
         if (res.next()) {
@@ -113,12 +114,10 @@ public class CheckExcute {
             Account account_temp = new Account(order.getAccountID(),0);
             System.out.println("AccountID: " + account_temp.getID());
             ResultSet res_temp = stockDB.checkBuyOrder(order);
-
             // Check if the symbol exsits.
             Symbol symbol_temp = new Symbol(order.getSymbol());
             System.out.println("Symbol: " + symbol_temp.getSym());
             ResultSet res_temp_sym = stockDB.search(symbol_temp);
-
             if(!res_temp.next()){
                 String errmsg = "Error: The Buy Order is not valid.";
                 System.out.println(errmsg);
@@ -153,7 +152,7 @@ public class CheckExcute {
 
         // Handle Order Matching
         ResultSet res = stockDB.search(order);
-        
+
         return null;
     }
 
