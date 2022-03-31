@@ -399,7 +399,7 @@ public class db {
         Statement st = connection.createStatement();
         String sql_search = "select * from order_all where order_id = " + transaction_id + " for update;";
         ResultSet queryres = st.executeQuery(sql_search);
-        String sql = "update order_all set status = 'cancel' where order_id = " + transaction_id + ";";
+        String sql = "update order_all set status = 'canceled' where order_id = " + transaction_id + ";";
         st.executeUpdate(sql);
         String sql_search_cancel = "select * from order_all where order_id = " + transaction_id + ";";
         ResultSet query_cancel_res = st.executeQuery(sql_search_cancel);

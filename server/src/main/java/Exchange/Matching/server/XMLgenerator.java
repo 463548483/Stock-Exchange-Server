@@ -57,19 +57,33 @@ public class XMLgenerator {
     }
 
 
-    public void lineXML(XMLObject XMLobject,String status){
+    public Element lineXML(XMLObject XMLobject,String status){
         
-        Element accountStatus=document.createElement(status);
+        Element Status=document.createElement(status);
         if (status=="error"){
-            accountStatus.appendChild(document.createTextNode(XMLobject.getErrorMessage()));
+            Status.appendChild(document.createTextNode(XMLobject.getErrorMessage()));
         }
         Map<String,String> arrMap=XMLobject.getAttribute();
         for (String arr:arrMap.keySet()){
             Attr attr = document.createAttribute(arr);
             attr.setValue(arrMap.get(arr));
-            accountStatus.setAttributeNode(attr);
+            Status.setAttributeNode(attr);
         }
-        result.appendChild(accountStatus);
+        result.appendChild(Status);
+        return Status;
+    }
+
+    public Element lineXML(Element root,TransactionId transactionId,String status){
+        
+        Element Status=document.createElement(status);
+        Map<String,String> arrMap=transactionId.getChild();
+        for (String arr:arrMap.keySet()){
+            Attr attr = document.createAttribute(arr);
+            attr.setValue(arrMap.get(arr));
+            Status.setAttributeNode(attr);
+        }
+        root.appendChild(Status);
+        return Status;
     }
 
 }

@@ -107,9 +107,9 @@ public class Order extends XMLObject{
     @Override
     public Map<String,String> getAttribute(){
         Map<String,String> map=new LinkedHashMap<String,String>();
-        map.put("SYM",symbol);
-        map.put("AMT", Double.toString(amount));
-        map.put("LMT",Double.toString(limit));
+        map.put("sym",symbol);
+        map.put("amount", Double.toString(amount));
+        map.put("limit",Double.toString(limit));
         return map;
     }
 }
