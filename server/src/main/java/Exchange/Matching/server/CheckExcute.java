@@ -11,6 +11,12 @@ import java.util.function.Function;
 
 import javax.naming.directory.SearchControls;
 import javax.naming.spi.DirStateFactory.Result;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import com.google.common.xml.XmlEscapers;
 
@@ -22,13 +28,16 @@ public class CheckExcute {
     private Matching matching;
     private XMLgenerator xmLgenerator;
 
-    public CheckExcute(db stockDB, XMLgenerator xmLgenerator) {
+    public CheckExcute(db stockDB) {
         this.stockDB = stockDB;
-        this.xmLgenerator=xmLgenerator;
+        xmLgenerator=new XMLgenerator();
     }
 
+    public XMLgenerator getXmLgenerator(){
+        return xmLgenerator;
+    }
 
-    // For query Order & delete Order
+    // For query Order & cancel Order
     public void visit(int transactions_id, int action_flag) throws SQLException {
         if(action_flag == query_flag){
             ResultSet res = stockDB.search(transactions_id);
@@ -63,7 +72,7 @@ public class CheckExcute {
     }
 
 
-    public void visit(Account account) throws SQLException {
+    public void visit(Account account) throws SQLException, TransformerException {
         ResultSet res = stockDB.search(account);
         if (res.next()) {
             account.setErrorMessage("Error: Account already exists"); 
@@ -72,7 +81,7 @@ public class CheckExcute {
         // create account
         else {
             stockDB.insertData(account);
-            xmLgenerator.lineXML(account, "create");
+            xmLgenerator.lineXML(account, "created");
         }
         
     }
@@ -94,7 +103,7 @@ public class CheckExcute {
             }
             // create position
             stockDB.insertData(position);
-            xmLgenerator.lineXML(position, "create");
+            xmLgenerator.lineXML(position, "created");
         }
         
     }
@@ -106,13 +115,9 @@ public class CheckExcute {
         // Buy Order: account, symbol
         if(order.getType() == "buy"){
             // Check if the Buyer Account exists and the balance is enough.
-            Account account_temp = new Account(order.getAccountID(),0);
-            System.out.println("AccountID: " + account_temp.getID());
             ResultSet res_temp = stockDB.checkBuyOrder(order);
             // Check if the symbol exsits.
-            Symbol symbol_temp = new Symbol(order.getSymbol());
-            System.out.println("Symbol: " + symbol_temp.getSym());
-            ResultSet res_temp_sym = stockDB.search(symbol_temp);
+            ResultSet res_temp_sym = stockDB.search(new Symbol(order.getSymbol()));
             if(!res_temp.next()){
                 order.setErrorMessage("Error: The Buy Order is not valid"); 
                 xmLgenerator.lineXML(order, "error");
@@ -125,7 +130,6 @@ public class CheckExcute {
                 String msg = "The Buy Order is valid.";
                 System.out.println(msg);
                 stockDB.insertData(order);
-
             }
         }
         // Sell Order: check account, sym, amount
@@ -136,7 +140,6 @@ public class CheckExcute {
                 String msg = "The Sell Order is valid.";
                 System.out.println(msg);
                 stockDB.insertData(order);
-
             }
             else{
                 order.setErrorMessage("Error: The Sell Order is invalid"); 

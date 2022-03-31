@@ -56,13 +56,13 @@ public class Server {
         public Task(Socket socket, int task_id) {
             this.socket = socket;
             this.task_id = task_id;
-            proxy=new Proxy(stockDB);
+            proxy=new Proxy(stockDB,socket);
 
         }
 
         public void send() throws Exception {
             try (OutputStream response = socket.getOutputStream()){
-                response.write(("test1\n" + "test2\n").getBytes());
+                //response.write(proxy.ge.getBytes());
                 response.flush();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -75,6 +75,7 @@ public class Server {
                 // InputStreamReader reader=new InputStreamReader(socket.getInputStream());
                 // System.out.println((char)reader.read());
                 Trans = new DataInputStream(socket.getInputStream());
+                
                 int fileLen = Trans.readInt();
                 byte[] data = new byte[fileLen - 4];
                 Trans.readFully(data);
@@ -110,7 +111,9 @@ public class Server {
     public static void main(String[] args) throws SQLException {
         try {
             Server server = new Server();
-            server.listen();
+            while (true){
+                server.listen();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

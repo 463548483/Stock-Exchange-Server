@@ -31,7 +31,7 @@ public class Position extends XMLObject {
     public Map<String,String> getAttribute(){
         Map<String,String> map=new LinkedHashMap<String,String>();
         map.put("SYM",symbol);
-        map.put("ACCOUNT_ID",Integer.toString(account_id));
+        map.put("id",Integer.toString(account_id));
         return map;
     }
 
