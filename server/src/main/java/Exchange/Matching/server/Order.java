@@ -3,6 +3,7 @@ package Exchange.Matching.server;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.ErrorManager;
 
 public class Order extends XMLObject{
     private int order_id;
@@ -110,6 +111,9 @@ public class Order extends XMLObject{
         map.put("sym",symbol);
         map.put("amount", Double.toString(amount));
         map.put("limit",Double.toString(limit));
+        if (errorMessage==null){
+            map.put("id",Integer.toString(order_id)); 
+        }
         return map;
     }
 }

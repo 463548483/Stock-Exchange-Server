@@ -136,6 +136,7 @@ public class CheckExcute {
                 int response_trans_id = stockDB.getResponseID();
                 // To Do: add trans_id field to response
                 order.setOrderID(response_trans_id);
+                xmLgenerator.lineXML(order, "opened");
             }
             else{
                 order.setErrorMessage(msg); 
@@ -148,6 +149,10 @@ public class CheckExcute {
             String msg = stockDB.checkSellOrder(order);
             if(msg == "The Sell Order is valid."){
                 stockDB.insertData(order);
+                int response_trans_id = stockDB.getResponseID();
+                // To Do: add trans_id field to response
+                order.setOrderID(response_trans_id);
+                xmLgenerator.lineXML(order, "opened");
             }
             else{
                 order.setErrorMessage(msg); 
