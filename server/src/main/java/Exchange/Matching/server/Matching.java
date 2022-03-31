@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import javax.swing.plaf.basic.BasicOptionPaneUI.ButtonActionListener;
 
 public class Matching {
 
@@ -23,12 +22,11 @@ public class Matching {
     public Matching(Order order, ResultSet res) throws SQLException{
         this.order = order;
         // 1. Mapping ResultSet
-        this.order_list = new ArrayList<Order>();
+        this.order_list = mapOrder(res);
         // Store the Execute info of buy orders
         this.execute_list = new ArrayList<ExecuteOrder>();
         // Store the executed sell orders
         this.sell_order_list = new ArrayList<Order>();
-        mapOrder(res);
         matchOrder();
     }
 
@@ -68,8 +66,6 @@ public class Matching {
             String symbol = res.getString("SYMBOL");
             double amount = res.getDouble("AMOUNT");
             double limit = res.getDouble("BOUND");
-            //String status = res.getString("STATUS");
-            //String type = res.getString("TYPE");
             long time = res.getLong("TIME");
             ExecuteOrder order = new ExecuteOrder(bid, sid, b_trans_id, s_trans_id, symbol, amount, limit, time);
             e_list.add(order);
@@ -100,11 +96,7 @@ public class Matching {
                     sell_amount = 0;
                     or.setAmount(sell_amount);
                     order.setAmount(buy_amount);
-
                     sell_order_list.add(or);
-                    //or.setStatus("executed");
-                    //order.setStatus("executed");
-                    // whether need to delete the order that finish(amount = 00? Now don't delete.
                     break;
                 } else if (buy_amount > sell_amount) {
                     // compare time
@@ -122,7 +114,6 @@ public class Matching {
                     order.setAmount(buy_amount);
                     or.setAmount(sell_amount);
                     sell_order_list.add(or);
-                    //or.setStatus("executed");
                 } else {
                     // compare time
                     if (order.getTime() < or.getTime()) {
@@ -140,7 +131,6 @@ public class Matching {
                     or.setAmount(sell_amount);
                     // update remaining Sell Order
                     sell_order_list.add(or);
-                    //order.setStatus("executed");
                 }
             }
         }

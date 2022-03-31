@@ -6,9 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.function.ObjLongConsumer;
-
-import com.google.common.collect.Ordering;
 
 public class db {
     private Connection connection;
@@ -231,11 +228,11 @@ public class db {
             String sql = "";
             if (temp.getType() == "buy") {
                 sql = "select * from order_all where symbol = '"
-                        + temp.getSymbol() + " and bound <= " + temp.getLimit()
+                        + temp.getSymbol() + "' and bound <= " + temp.getLimit()
                         + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
             } else {
                 sql = "select * from order_all where symbol = '"
-                        + temp.getSymbol() + " and bound >= " + temp.getLimit()
+                        + temp.getSymbol() + "' and bound >= " + temp.getLimit()
                         + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
             }
             res = st.executeQuery(sql);
@@ -251,6 +248,11 @@ public class db {
                 Account seller_account_temp = new Account(eorder.getSellerID(), balance_change);
                 updateData(buyer_account_temp);
                 updateData(seller_account_temp);
+                // update position
+                Position buyer_position = new Position(eorder.getSymbol(), eorder.getAmount(), eorder.getBuyerID());
+                Position seller_position = new Position(eorder.getSymbol(), -eorder.getAmount(), eorder.getBuyerID());
+                updateData(buyer_position);
+                updateData(seller_position);
             }
             // Update Order in Order_all Table
             Order new_order = matching.getOrder();
@@ -302,7 +304,7 @@ public class db {
             // System.out.println(sql);
             st.executeUpdate(sql);
             // st.close();
-            connection.commit();
+            //connection.commit();
         }
         // update balance
         if (obj instanceof Account) {
@@ -318,35 +320,66 @@ public class db {
             // System.out.println(sql);
             st.executeUpdate(sql_update);
             // st.close();
-            connection.commit();
+            //connection.commit();
+        }
+        if(obj instanceof Position){
+            Position temp = (Position) obj;
+            Statement st = connection.createStatement();
+            String sql = "select * from position where symbol = '" + temp.getSym() +"' and account_id = " + temp.getID() + ";";
+            ResultSet res = st.executeQuery(sql);
+            double amount = res.getDouble("amount");
+            double new_amount = amount + temp.getAmount();
+            String sql_update = "update position set amount = " + new_amount + " where symbol = '" + temp.getSym() +"' and account_id = " + temp.getID() + ";";
+            // System.out.println(sql);
+            st.executeUpdate(sql_update);
+            // st.close();
+            //connection.commit();
         }
     }
 
     // help check whether the buy order is valid or not.
-    public ResultSet checkBuyOrder(Order order) throws SQLException {
-        ResultSet res = null;
+    public String checkBuyOrder(Order order) throws SQLException {
+        String msg = "";
+        
+        // Check if the symbol exsits.
+        ResultSet res_temp_sym = search(new Symbol(order.getSymbol()));
+        if(!res_temp_sym.next()){
+            msg = "Error: The Symbol of the Buy Order does not exist"; 
+            return msg;
+        }
+        
+        // Check if the Buyer Account exists and the balance is enough.
         double need_balance = order.getAmount() * order.getLimit();
         Statement st = connection.createStatement();
         String sql = "select * from account where account_id = " + order.getAccountID() + " and balance >= "
                 + need_balance + ";";
-        // System.out.println(sql);
-        res = st.executeQuery(sql);
+        ResultSet res = st.executeQuery(sql);
         // st.close();
         connection.commit();
-        return res;
+        if(!res.next()){
+            msg = "Error: The Buy Order is not valid"; 
+            return msg;
+        }
+        msg = "The Buy Order is valid.";
+        return msg;
     }
 
     // help check whether the sell order is valid or not.
-    public ResultSet checkSellOrder(Order order) throws SQLException {
-        ResultSet res = null;
+    public String checkSellOrder(Order order) throws SQLException {
+        String msg = "";
         Statement st = connection.createStatement();
         String sql = "select * from position where account_id = " + order.getAccountID() + " and symbol = '"
                 + order.getSymbol() + "' and amount >= " + order.getAmount() + ";";
         // System.out.println(sql);
-        res = st.executeQuery(sql);
+        ResultSet res = st.executeQuery(sql);
         // st.close();
         connection.commit();
-        return res;
+        if(!res.next()){
+            msg = "Error: The Sell Order is invalid."; 
+            return msg;
+        }
+        msg = "The Sell Order is valid.";
+        return msg;
     }
 
     // cancel order

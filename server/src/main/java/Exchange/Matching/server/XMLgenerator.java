@@ -32,6 +32,10 @@ public class XMLgenerator {
 
     }
 
+    public Document getDocument(){
+        return document;
+    }
+
     public void DOMtoXML(){
         try{    
             // create the xml file

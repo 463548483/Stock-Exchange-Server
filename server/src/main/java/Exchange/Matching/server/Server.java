@@ -42,9 +42,11 @@ public class Server {
     }
 
     public void listen() throws Exception {
-        Socket socket = this.socket.accept();
-        task_id++;
-        new Thread(new Task(socket, task_id)).start();
+        while(true){
+            Socket socket = this.socket.accept();
+            task_id++;
+            new Thread(new Task(socket, task_id)).start();
+        } 
     }
 
     class Task implements Runnable {

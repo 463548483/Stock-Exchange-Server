@@ -7,6 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.*;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import com.google.common.xml.XmlEscapers;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -32,7 +39,7 @@ public class Proxy {
         return response;
     }
 
-    public void create_parse(Node n) throws SQLException{
+    public void create_parse(Node n) throws SQLException, TransformerConfigurationException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -78,7 +85,7 @@ public class Proxy {
                 break;
             }
         }
-        xmLgenerator.DOMtoXML();
+        //xmLgenerator.DOMtoXML();
     }
 
     public void transactions_parse(Node n) throws SQLException{
@@ -123,6 +130,6 @@ public class Proxy {
                 break;
             }
         }
-        xmLgenerator.DOMtoXML();
+        //xmLgenerator.DOMtoXML();
     }
 }
