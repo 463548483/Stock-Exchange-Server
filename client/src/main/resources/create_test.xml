@@ -4,5 +4,11 @@
   <symbol sym="SPY">
    <account id="123456">100000</account>
  </symbol>
+  <symbol sym="GVM">
+   <account id="123456">900</account>
+ </symbol>
+  <symbol sym="GVM">
+   <account id="12300">900</account>
+ </symbol>
 </create>
 
