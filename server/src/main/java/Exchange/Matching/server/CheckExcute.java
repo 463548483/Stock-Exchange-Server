@@ -39,7 +39,8 @@ public class CheckExcute {
             ResultSet res = stockDB.search(transactions_id);
             if(!res.next()){
                 Order queOrder=new Order(transactions_id);
-                queOrder.setErrorMessage("Error: The queried Order does not exist."); 
+                String errmsg = "Error: The queried Order does not exist.";
+                queOrder.setErrorMessage(errmsg); 
                 xmLgenerator.lineXML(queOrder, "error");
             }
             else{
@@ -53,13 +54,26 @@ public class CheckExcute {
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
                 ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transactions_id, order.getType());
+                for(ExecuteOrder eorder: execute_list){
+                    // To Do: add responses
+                }
             }
         }
         if (action_flag == cancel_flag){
-            String res = stockDB.cancelOrder(transactions_id);
-            System.out.println(res);
+            ResultSet res = stockDB.search(transactions_id);
+            if (!res.next()) {
+                String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
+                System.out.println(errmsg);
+            } else {
+                ArrayList<Order> cancel_list = stockDB.cancelOrder(transactions_id);
+                String msg = "Successfully canceled the Order.";
+                System.out.println(msg);
+                // add responses
+                for(Order order: cancel_list){
+                    xmLgenerator.lineXML(order, order.getStatus());
+                }
+            }
         }
-        // canceled all open transaction
     }
 
     public void visit(Account account) throws SQLException, TransformerConfigurationException {
@@ -107,6 +121,10 @@ public class CheckExcute {
             String msg = stockDB.checkBuyOrder(order);
             if(msg == "The Buy Order is valid."){
                 stockDB.insertData(order);
+                // returned transaction_id
+                int response_trans_id = stockDB.getResponseID();
+                // To Do: add trans_id field to response
+                order.setOrderID(response_trans_id);
             }
             else{
                 order.setErrorMessage(msg); 

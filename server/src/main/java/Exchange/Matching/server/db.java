@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class db {
     private Connection connection;
     private Matching matching;
+    private int reponse_trans_id;
 
     public db() throws SQLException {
         this.connection = buildDBConnection();
@@ -162,9 +163,14 @@ public class db {
             st.executeUpdate(sql);
             String getTransactionID_sql = "select lastval();";
             ResultSet res = st.executeQuery(getTransactionID_sql);
-
-            //int transaction_id = Integer.parseInt(res);
+            //trans_id : For reponse Order
+            int trans_id = -1;
+            if(res.next()){
+                trans_id = res.getInt("lastval");
+            }
+            System.out.println("The transaction id is :" + trans_id);
             // st.close();
+            this.reponse_trans_id = trans_id;
             connection.commit();
         }
         if (obj instanceof ExecuteOrder) {
@@ -389,19 +395,22 @@ public class db {
     }
 
     // cancel order
-    public String cancelOrder(int transaction_id) throws SQLException {
-        ResultSet res = search(transaction_id);
-        if (!res.next()) {
-            String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
-            return errmsg;
-        } else {
-            Statement st = connection.createStatement();
-            String sql = "update order_all set status = 'cancel' where order_id = " + transaction_id + ";";
-            st.executeUpdate(sql);
-            // st.close();
-            connection.commit();
-            String msg = "Successfully canceled the Order.";
-            return msg;
-        }
+    public ArrayList<Order> cancelOrder(int transaction_id) throws SQLException {
+        Statement st = connection.createStatement();
+        String sql_search = "select * from order_all where order_id = " + transaction_id + " for update;";
+        ResultSet queryres = st.executeQuery(sql_search);
+        String sql = "update order_all set status = 'cancel' where order_id = " + transaction_id + ";";
+        st.executeUpdate(sql);
+        String sql_search_cancel = "select * from order_all where order_id = " + transaction_id + ";";
+        ResultSet query_cancel_res = st.executeQuery(sql_search_cancel);
+        ArrayList<Order> cancel_list = matching.mapOrder(query_cancel_res);
+        // st.close();
+        connection.commit();
+        return cancel_list;
+    }
+
+
+    public int getResponseID(){
+        return this.reponse_trans_id;
     }
 }
