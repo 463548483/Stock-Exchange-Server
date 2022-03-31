@@ -1,45 +1,25 @@
 package Exchange.Matching.server;
+import java.io.IOException;
+import java.net.Socket;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.zip.CheckedOutputStream;
 
-import javax.xml.parsers.*;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import com.google.common.xml.XmlEscapers;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 
 public class Proxy {
-    private List<Pair<Object,String>> response;
     private CheckExcute checkExcute;
-    private XMLgenerator xmLgenerator;
     private int query_flag = 0;
     private int cancel_flag = 1;
+    private Socket socket;
 
-    public Proxy(db stockDB){
-        response=new LinkedList<Pair<Object,String>>();
-        XMLgenerator xmLgenerator=new XMLgenerator();
-        checkExcute=new CheckExcute(stockDB,xmLgenerator);
+    public Proxy(db stockDB,Socket socket){
+        this.socket=socket;
+        checkExcute=new CheckExcute(stockDB);
     }
 
-    public List<Pair<Object,String>> getresponse(){
-        return response;
-    }
-
-    public void create_parse(Node n) throws SQLException, TransformerConfigurationException{
+    public void create_parse(Node n) throws SQLException, TransformerConfigurationException, IOException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -62,7 +42,6 @@ public class Proxy {
                 //System.out.println("id: " + id);
                 //System.out.println("balance: " + balance);
                 checkExcute.visit(account);
-
                 break;
             case "symbol":
                 NamedNodeMap sym_attrs= child.getAttributes();
@@ -78,17 +57,16 @@ public class Proxy {
                             System.out.println(x.getNodeName()+": "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
                             checkExcute.visit(position);
-
                         }
                     }
                 }
                 break;
             }
         }
-        //xmLgenerator.DOMtoXML();
+        checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
     }
 
-    public void transactions_parse(Node n) throws SQLException{
+    public void transactions_parse(Node n) throws SQLException, IOException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
         System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
@@ -130,6 +108,6 @@ public class Proxy {
                 break;
             }
         }
-        //xmLgenerator.DOMtoXML();
+        checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
     }
 }

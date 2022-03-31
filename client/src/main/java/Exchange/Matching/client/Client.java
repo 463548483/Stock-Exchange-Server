@@ -41,7 +41,18 @@ public class Client extends Socket {
     }
 
     public void receive() throws IOException {
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
+        try {
+            // DataInputStream dis=new DataInputStream(socket.getInputStream());
+            // File file = new File("response.xml");
+            // FileOutputStream fos=new FileOutputStream(file);
+            // byte[] bytes = new byte[1024];
+            // int length = 0;
+            // while((length = dis.read(bytes, 0, bytes.length)) != -1) {
+            //     fos.write(bytes, 0, length);
+            //     fos.flush();
+            // }
+            // fos.close();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             while (true) {
                 String str = bufferedReader.readLine();
                 if (str == null) {

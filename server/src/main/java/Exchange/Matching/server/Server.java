@@ -3,31 +3,16 @@
  */
 package Exchange.Matching.server;
 
-import Exchange.Matching.server.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.xml.parsers.*;
-
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
 
 public class Server {
     private ServerSocket socket;
@@ -58,13 +43,13 @@ public class Server {
         public Task(Socket socket, int task_id) {
             this.socket = socket;
             this.task_id = task_id;
-            proxy=new Proxy(stockDB);
+            proxy=new Proxy(stockDB,socket);
 
         }
 
         public void send() throws Exception {
             try (OutputStream response = socket.getOutputStream()){
-                response.write(("test1\n" + "test2\n").getBytes());
+                //response.write(proxy.ge.getBytes());
                 response.flush();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -77,6 +62,7 @@ public class Server {
                 // InputStreamReader reader=new InputStreamReader(socket.getInputStream());
                 // System.out.println((char)reader.read());
                 Trans = new DataInputStream(socket.getInputStream());
+                
                 int fileLen = Trans.readInt();
                 byte[] data = new byte[fileLen - 4];
                 Trans.readFully(data);
@@ -112,7 +98,9 @@ public class Server {
     public static void main(String[] args) throws SQLException {
         try {
             Server server = new Server();
-            server.listen();
+            while (true){
+                server.listen();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

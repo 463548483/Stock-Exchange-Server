@@ -1,11 +1,13 @@
 package Exchange.Matching.server;
 
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -35,18 +37,19 @@ public class XMLgenerator {
     public Document getDocument(){
         return document;
     }
+ 
 
-    public void DOMtoXML(){
+    public void DOMtoXML(OutputStream response){
         try{    
             // create the xml file
             //transform the DOM Object to an XML File
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             DOMSource domSource = new DOMSource(document);
-            StreamResult streamResult = new StreamResult(System.out);
-
+            StreamResult streamResult = new StreamResult(response);
             transformer.transform(domSource, streamResult);
-            System.out.println("Done creating XML File");
+            //return response;
         }catch(Exception e){
             e.printStackTrace();
         }

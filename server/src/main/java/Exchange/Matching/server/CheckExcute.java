@@ -5,7 +5,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import javax.naming.directory.SearchControls;
+import javax.naming.spi.DirStateFactory.Result;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import com.google.common.xml.XmlEscapers;
 
 public class CheckExcute {
 
@@ -13,11 +22,15 @@ public class CheckExcute {
     private final int query_flag = 0;
     private final int cancel_flag = 1;
     private Matching matching;
-    //private XMLgenerator xmLgenerator;
+    private XMLgenerator xmLgenerator;
 
-    public CheckExcute(db stockDB, XMLgenerator xmLgenerator) {
+    public CheckExcute(db stockDB) {
         this.stockDB = stockDB;
-        //this.xmLgenerator=xmLgenerator;
+        xmLgenerator=new XMLgenerator();
+    }
+
+    public XMLgenerator getXmLgenerator(){
+        return xmLgenerator;
     }
 
     // For query Order & cancel Order
@@ -27,7 +40,7 @@ public class CheckExcute {
             if(!res.next()){
                 Order queOrder=new Order(transactions_id);
                 queOrder.setErrorMessage("Error: The queried Order does not exist."); 
-                //xmLgenerator.lineXML(queOrder, "error");
+                xmLgenerator.lineXML(queOrder, "error");
             }
             else{
                 String msg = "Found the query Order.";
@@ -35,7 +48,7 @@ public class CheckExcute {
                 // order_list: open/cancel orders in order_all
                 ArrayList<Order> order_list = stockDB.searchOrder(transactions_id);
                 for(Order order: order_list){
-                    //xmLgenerator.lineXML(order, order.getStatus());
+                    xmLgenerator.lineXML(order, order.getStatus());
                 }
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
@@ -49,27 +62,16 @@ public class CheckExcute {
         // canceled all open transaction
     }
 
-
     public void visit(Account account) throws SQLException, TransformerConfigurationException {
         ResultSet res = stockDB.search(account);
         if (res.next()) {
             account.setErrorMessage("Error: Account already exists"); 
-            /*
             xmLgenerator.lineXML(account, "error");
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource domSource = new DOMSource(xmLgenerator.getDocument());
-            StreamResult streamResult = new StreamResult(System.out);*/
         }
         // create account
         else {
             stockDB.insertData(account);
-            /*
-            xmLgenerator.lineXML(account, "create");
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource domSource = new DOMSource(xmLgenerator.getDocument());
-            StreamResult streamResult = new StreamResult(System.out);*/
+            xmLgenerator.lineXML(account, "created");
         }
         
     }
@@ -83,15 +85,15 @@ public class CheckExcute {
 
         if (!res_account.next()) {
             position.setErrorMessage("Error: Account does not exist"); 
-            //xmLgenerator.lineXML(position, "error");
+            xmLgenerator.lineXML(position, "error");
         } else {
             // create symbol
-            if (res_sym == null) {
+            if (!res_sym.next()) {
                 stockDB.insertData(symbol_temp);
             }
             // create position
             stockDB.insertData(position);
-            //xmLgenerator.lineXML(position, "create");
+            xmLgenerator.lineXML(position, "created");
         }
         
     }
@@ -106,6 +108,10 @@ public class CheckExcute {
             if(msg == "The Buy Order is valid."){
                 stockDB.insertData(order);
             }
+            else{
+                order.setErrorMessage(msg); 
+                xmLgenerator.lineXML(order, "error");
+            };
             System.out.println(msg);
         }
         // Sell Order: check account, sym, amount
@@ -113,6 +119,10 @@ public class CheckExcute {
             String msg = stockDB.checkSellOrder(order);
             if(msg == "The Sell Order is valid."){
                 stockDB.insertData(order);
+            }
+            else{
+                order.setErrorMessage(msg); 
+                xmLgenerator.lineXML(order, "error");  
             }
             System.out.println(msg);
         }

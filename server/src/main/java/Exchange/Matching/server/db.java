@@ -82,6 +82,7 @@ public class db {
                 "STATUS VARCHAR," +
                 "TYPE VARCHAR," +
                 "TIME BIGINT," +
+                //"constraint symbol_fk foreign key(symbol) references sym(symbol) on delete set null on update cascade," + 
                 "CONSTRAINT ACCOUNT_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
         // Store trades info
@@ -89,12 +90,13 @@ public class db {
                 "ORDER_ID SERIAL PRIMARY KEY," +
                 "BUYER_ID INT," +
                 "SELLER_ID INT," +
-                "BUYER_ORDER_ID INT," +
-                "SELLER_ORDER_ID INT," +
+                "BUYER_TRANS_ID INT," +
+                "SELLER_TRANS_ID INT," +
                 "SYMBOL VARCHAR," +
                 "AMOUNT FLOAT," +
                 "PRICE FLOAT," +
                 "TIME BIGINT," +
+                //"constraint symbol_fk foreign key(symbol) references sym(symbol) on delete set null on update cascade," + 
                 "CONSTRAINT BUYER_FK FOREIGN KEY (BUYER_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE,"
                 +
                 "CONSTRAINT SELLER_FK FOREIGN KEY (SELLER_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
@@ -125,7 +127,7 @@ public class db {
             Symbol temp = (Symbol) obj;
             Statement st = connection.createStatement();
             String sql = "INSERT INTO SYM (SYMBOL) VALUES('" + temp.getSym() + "');";
-            // System.out.println(sql);
+            System.out.println(sql);
             st.executeUpdate(sql);
             // st.close();
             connection.commit();
@@ -160,14 +162,15 @@ public class db {
             st.executeUpdate(sql);
             String getTransactionID_sql = "select lastval();";
             ResultSet res = st.executeQuery(getTransactionID_sql);
-            // String transaction_id = (String)
+
+            //int transaction_id = Integer.parseInt(res);
             // st.close();
             connection.commit();
         }
         if (obj instanceof ExecuteOrder) {
             ExecuteOrder temp = (ExecuteOrder) obj;
             Statement st = connection.createStatement();
-            String sql = "insert into order_execute(buyer_id, seller_id, buyer_order_id, seller_order_id, symbol, amount, price, time) values("
+            String sql = "insert into order_execute(buyer_id, seller_id, buyer_trans_id, seller_trans_id, symbol, amount, price, time) values("
                     + temp.getBuyerID() + ", " + temp.getSellerID() + ", " + temp.getBuyerOrderID() + ", "
                     + temp.getSellerOrderID() + ", " + temp.getSymbol() + "', " + temp.getAmount() + ", "
                     + temp.getPrice()
@@ -279,10 +282,13 @@ public class db {
         ArrayList<ExecuteOrder> query_execute_order = new ArrayList<ExecuteOrder>();
         Statement st = connection.createStatement();
         String sql = "";
-        if (type == "buy") {
+        if (type.equals("buy")) {
             sql = "select * from order_execute where buyer_trans_id = " + transaction_id + ";";
-        } else if (type == "sell") {
+            System.out.println(sql);
+            
+        } else if (type.equals("sell")) {
             sql = "select * from order_execute where seller_trans_id = " + transaction_id + ";";
+            System.out.println(sql);
         }
         ResultSet res = st.executeQuery(sql);
         // st.close();
