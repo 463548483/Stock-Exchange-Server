@@ -1,29 +1,37 @@
 package Exchange.Matching.server;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-public class Account {
+public class Account extends XMLObject{
     private int id;
-    private int balance;
-    private ArrayList<Position> positions;
+    private double balance;
 
-    public Account(int id, int balance){
+
+
+    public Account(int id, double balance){
         this.id = id;
         this.balance = balance;
-        this.positions=new ArrayList<Position>();
     }
 
     public int getID(){
         return this.id;
     }
     
-    public int getBalance(){
+    public double getBalance(){
         return this.balance;
     }
 
-    public void insertPosition(Position p){
-        positions.add(p);
+
+    @Override
+    public Map<String,String> getAttribute(){
+        Map<String,String> map=new LinkedHashMap<String,String>();
+        map.put("id",Integer.toString(id));
+        return map;
     }
+
+
 }
 
 
