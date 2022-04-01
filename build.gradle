@@ -14,10 +14,23 @@ allprojects{
     repositories {
         mavenCentral()
     }
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
     apply plugin: 'base'
     apply plugin: 'com.bmuschko.clover'
+    apply plugin: 'application'
+
+    mainClassName = 'Exchange.Matching.server.Server'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
     dependencies {
+        implementation "joda-time:joda-time:2.2"
+        testImplementation "junit:junit:4.12"
         clover 'org.openclover:clover:4.4.1'
+    }
+    jar {
+    archiveBaseName = 'gs-gradle'
+    archiveVersion =  '0.1.0'
     }
 }
 clover{
@@ -57,4 +70,6 @@ tasks.register("run-client") {
     group = "Run Client/Server"
     description = "Run the Client"
 }
+
+
     

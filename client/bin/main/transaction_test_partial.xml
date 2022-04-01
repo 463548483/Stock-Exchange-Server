@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<transactions id="2">
- <query id="0003"/> 
- <order sym="C" amount="-100.00" limit="1.65"/>
- <order sym="C" amount="-50.00" limit="1.67"/><!--price more than limit-->
- <query id="0003"/>
- <cancel id="0003"/>
- <query id="0003"/>
-</transactions>
