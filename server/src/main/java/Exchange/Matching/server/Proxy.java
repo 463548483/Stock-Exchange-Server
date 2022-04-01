@@ -107,7 +107,7 @@ public class Proxy {
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println("cancel_id: " + cancel_transaction_id);
-                TransactionId cancel_transaction=new TransactionId(account_id, query_transaction_id);
+                TransactionId cancel_transaction=new TransactionId(account_id, cancel_transaction_id);
                 checkExcute.visit(cancel_transaction,cancel_flag);
                 break;
             }
