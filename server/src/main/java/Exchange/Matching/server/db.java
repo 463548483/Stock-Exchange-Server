@@ -238,12 +238,12 @@ public class db {
             if (temp.getType().equals("buy")) {
                 sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + "' and bound <= " + temp.getLimit()
-                        + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
+                        + " and status = 'open' and type = 'sell' and account_id !="+ temp.getAccountID() +" order by bound asc, time asc for update;";
                 //System.out.println(sql);
             } else if(temp.getType().equals("sell")){
                 sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + "' and bound >= " + temp.getLimit() 
-                        + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
+                        + " and status = 'open' and type = 'buy'  and account_id !="+ temp.getAccountID() +" order by bound desc, time asc for update;";
                 //System.out.println(sql);
             }
             res = st.executeQuery(sql);
@@ -401,14 +401,17 @@ public class db {
         double need_balance = order.getAmount() * order.getLimit();
         Statement st = connection.createStatement();
         String sql = "select * from account where account_id = " + order.getAccountID() + " and balance >= "
-                + need_balance + ";";
+                + need_balance + " for update;";
         ResultSet res = st.executeQuery(sql);
         // st.close();
-        connection.commit();
+        
         if(!res.next()){
             msg = "Error: The balance of the Account is insufficient."; 
             return msg;
         }
+        Account new_account = new Account(order.getAccountID(), -need_balance);
+        updateData(new_account);
+        connection.commit();
         msg = "The Buy Order is valid.";
         return msg;
     }
