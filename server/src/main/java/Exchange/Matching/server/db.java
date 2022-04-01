@@ -224,7 +224,7 @@ public class db {
             // query Orders
             int temp = (int) obj;
             Statement st = connection.createStatement();
-            String sql = "select * from order_all where order_id = " + temp + ";";
+            String sql = "select * from order_all where order_id = " + temp + " and account_id = " ";";
             res = st.executeQuery(sql);
             // String sql_execute = "select * from order_execute where "
             // st.close();
