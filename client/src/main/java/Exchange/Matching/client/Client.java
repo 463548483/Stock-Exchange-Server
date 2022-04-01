@@ -8,19 +8,21 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-public class Client extends Socket {
+public class Client extends Socket implements Runnable {
     private static final String hostName = "127.0.0.1";
     private static final int portNum = 12345;
     private Socket socket;
     private DataOutputStream toTrans;
+    private String filename;
 
-    public Client() throws UnknownHostException, IOException {
+    public Client(String filename) throws UnknownHostException, IOException {
         super(hostName, portNum);
         this.socket = this;
         System.out.println("Client connected");
+        this.filename=filename;
     }
 
-    public void send(String filename) throws Exception {
+    public void send() throws Exception {
 
         try (Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(filename))) {
             toTrans = new DataOutputStream(socket.getOutputStream());
@@ -68,12 +70,30 @@ public class Client extends Socket {
         }
     }
 
-    public static void main(String[] args) {
-        try (Client client = new Client()) {
-            client.send(args[0]);
-            client.receive();
+    @Override
+    public void run(){
+        try {
+            send();
+            receive();
         } catch (Exception e) {
-            e.printStackTrace();           
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
+
+    public static void main(String[] args) {
+        for (int i=0;i<Integer.parseInt(args[1]);i++){
+            Thread t;
+            try {
+                t = new Thread(new Client(args[0]));
+                t.start();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } 
+            
+            
         }
 
     }

@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.util.zip.CheckedOutputStream;
 
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
@@ -19,7 +21,7 @@ public class Proxy {
         checkExcute=new CheckExcute(stockDB);
     }
 
-    public void create_parse(Node n) throws SQLException, TransformerConfigurationException, IOException{
+    public void create_parse(Node n) throws SQLException, IOException, TransformerException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -66,7 +68,7 @@ public class Proxy {
         checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
     }
 
-    public void transactions_parse(Node n) throws SQLException, IOException{
+    public void transactions_parse(Node n) throws SQLException, IOException, TransformerException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
         System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {

@@ -28,156 +28,183 @@ public class CheckExcute {
 
     public CheckExcute(db stockDB) {
         this.stockDB = stockDB;
-        xmLgenerator=new XMLgenerator();
+        xmLgenerator = new XMLgenerator();
     }
 
-    public XMLgenerator getXmLgenerator(){
+    public XMLgenerator getXmLgenerator() {
         return xmLgenerator;
     }
 
     // For query Order & cancel Order
     public void visit(int transactions_id, int action_flag) throws SQLException {
-        if(action_flag == query_flag){
+
+        if (action_flag == query_flag) {
             ResultSet res = stockDB.search(transactions_id);
-            if(!res.next()){
-                TransactionId queId=new TransactionId(transactions_id);
+            if (!res.next()) {
+                TransactionId queId = new TransactionId(transactions_id);
                 String errmsg = "Error: The queried Order does not exist.";
-                queId.setErrorMessage(errmsg); 
+                queId.setErrorMessage(errmsg);
                 xmLgenerator.lineXML(queId, "error");
-            }
-            else{
+            } else {
                 String msg = "Found the query Order.";
                 System.out.println(msg);
                 // order_list: open/cancel orders in order_all
                 ArrayList<Order> order_list = stockDB.searchOrder(transactions_id);
-                TransactionId queId=new TransactionId(transactions_id);
-                Element status=xmLgenerator.lineXML(queId, "status");
-                for(Order order: order_list){
+                TransactionId queId = new TransactionId(transactions_id);
+                Element status = xmLgenerator.lineXML(queId, "status");
+                for (Order order : order_list) {
+                    if (order.getAmount() == 0) {
+                        continue;
+                    }
                     queId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
-                    xmLgenerator.lineXML(status,queId, queId.getStatus());
+                    xmLgenerator.lineXML(status, queId, queId.getStatus());
                 }
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
                 System.out.println("The type of the order is: " + order.getType());
                 ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transactions_id, order.getType());
-                for(ExecuteOrder eorder: execute_list){
-                    queId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
-                    xmLgenerator.lineXML(status,queId, queId.getStatus());
+                if(execute_list != null){
+                    for (ExecuteOrder eorder : execute_list) {
+                        queId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
+                        xmLgenerator.lineXML(status, queId, queId.getStatus());
+                    }
                 }
             }
         }
-        if (action_flag == cancel_flag){
+
+        if (action_flag == cancel_flag) {
             ResultSet res = stockDB.search(transactions_id);
             if (!res.next()) {
-                TransactionId calId=new TransactionId(transactions_id);
+                TransactionId calId = new TransactionId(transactions_id);
                 String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
-                calId.setErrorMessage(errmsg); 
+                calId.setErrorMessage(errmsg);
                 xmLgenerator.lineXML(calId, "error");
             } else {
-                TransactionId calId=new TransactionId(transactions_id);
-                Element canceled=xmLgenerator.lineXML(calId, "canceled");
+                TransactionId calId = new TransactionId(transactions_id);
+                Element canceled = xmLgenerator.lineXML(calId, "canceled");
                 ArrayList<Order> cancel_list = stockDB.cancelOrder(transactions_id).getValue();
+                String type = stockDB.cancelOrder(transactions_id).getKey();
+                System.out.println("The type pf the cancel order is:" + type);
                 String msg = "Successfully canceled the Order.";
                 System.out.println(msg);
 
-                ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transactions_id, stockDB.cancelOrder(transactions_id).getKey());
+                ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transactions_id,type);
                 // add responses
-                for(Order order: cancel_list){
+                for (Order order : cancel_list) {
+                    if (order.getAmount() == 0) {
+                        continue;
+                    }
                     calId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
-                    xmLgenerator.lineXML(canceled,calId, calId.getStatus());
+                    xmLgenerator.lineXML(canceled, calId, calId.getStatus());
                 }
-                for(Order order: cancel_list){
-                    calId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
-                    xmLgenerator.lineXML(canceled,calId, calId.getStatus());
+                if(execute_cancel_list != null){
+                    for (ExecuteOrder eorder : execute_cancel_list) {
+                        calId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
+                        xmLgenerator.lineXML(canceled, calId, calId.getStatus());
+                    }
                 }
             }
         }
+
     }
 
-    public void visit(Account account) throws SQLException, TransformerConfigurationException {
-        ResultSet res = stockDB.search(account);
-        if (res.next()) {
-            account.setErrorMessage("Error: Account already exists"); 
+    public void visit(Account account) {
+        try {
+            ResultSet res = stockDB.search(account);
+            if (res.next()) {
+                account.setErrorMessage("Error: Account already exists");
+                xmLgenerator.lineXML(account, "error");
+            }
+            // create account
+            else {
+                stockDB.insertData(account);
+                xmLgenerator.lineXML(account, "created");
+            }
+        } catch (SQLException e) {
+            account.setErrorMessage(e.getMessage());
             xmLgenerator.lineXML(account, "error");
         }
-        // create account
-        else {
-            stockDB.insertData(account);
-            xmLgenerator.lineXML(account, "created");
-        }
-        
+
     }
 
-    public void visit(Position position) throws SQLException {
-        Account account_temp = new Account(position.getAccountID(), 0);
-        Symbol symbol_temp = new Symbol(position.getSym());
-        
-        ResultSet res_account = stockDB.search(account_temp);
-        ResultSet res_sym = stockDB.search(symbol_temp);
+    public void visit(Position position) {
+        try {
+            Account account_temp = new Account(position.getAccountID(), 0);
+            Symbol symbol_temp = new Symbol(position.getSym());
 
-        ResultSet res_postion = stockDB.search(position);
+            ResultSet res_account = stockDB.search(account_temp);
+            ResultSet res_sym = stockDB.search(symbol_temp);
 
-        if (!res_account.next()) {
-            position.setErrorMessage("Error: Account does not exist"); 
+            ResultSet res_postion = stockDB.search(position);
+
+            if (!res_account.next()) {
+                position.setErrorMessage("Error: Account does not exist");
+                xmLgenerator.lineXML(position, "error");
+            } else {
+                // create symbol
+                if (!res_sym.next()) {
+                    stockDB.insertData(symbol_temp);
+                }
+                if (!res_postion.next()) {
+                    // create position
+                    stockDB.insertData(position);
+                    xmLgenerator.lineXML(position, "created");
+                } else {
+                    stockDB.updateData(position);
+                    xmLgenerator.lineXML(position, "created");
+                }
+            }
+        } catch (SQLException e) {
+            position.setErrorMessage(e.getMessage());
             xmLgenerator.lineXML(position, "error");
-        } else {
-            // create symbol
-            if (!res_sym.next()) {
-                stockDB.insertData(symbol_temp);
-            }
-            if(!res_postion.next()){
-                // create position
-                stockDB.insertData(position);
-                xmLgenerator.lineXML(position, "created");    
-            }
-            else{
-                stockDB.updateData(position);
-                xmLgenerator.lineXML(position, "created");
-            }
         }
-        
+
     }
 
     // handle new Order
-    public void visit(Order order) throws SQLException {
+    public void visit(Order order) {
         // check if the Order is Valid or Not
         // System.out.println("The type of the new order is: " + order.getType());
         // Buy Order: account, symbol
-        if(order.getType() == "buy"){
-            String msg = stockDB.checkBuyOrder(order);
-            if(msg.equals("The Buy Order is valid.")){
-                stockDB.insertData(order);
-                // returned transaction_id
-                int response_trans_id = stockDB.getResponseID();
-                // To Do: add trans_id field to response
-                order.setOrderID(response_trans_id);
-                xmLgenerator.lineXML(order, "opened");
+        try {
+            if (order.getType().equals("buy")) {
+                String msg = stockDB.checkBuyOrder(order);
+                if (msg.equals("The Buy Order is valid.")) {
+                    stockDB.insertData(order);
+                    // returned transaction_id
+                    int response_trans_id = stockDB.getResponseID();
+                    // To Do: add trans_id field to response
+                    order.setOrderID(response_trans_id);
+                    xmLgenerator.lineXML(order, "opened");
+                } else {
+                    order.setErrorMessage(msg);
+                    xmLgenerator.lineXML(order, "error");
+                }
+                ;
+                System.out.println("yy-test" + msg);
             }
-            else{
-                order.setErrorMessage(msg); 
-                xmLgenerator.lineXML(order, "error");
-            };
-            System.out.println("yy-test"+msg);
-        }
-        // Sell Order: check account, sym, amount
-        else{
-            String msg = stockDB.checkSellOrder(order);
-            if(msg.equals("The Sell Order is valid.")){
-                stockDB.insertData(order);
-                int response_trans_id = stockDB.getResponseID();
-                // To Do: add trans_id field to response
-                order.setOrderID(response_trans_id);
-                xmLgenerator.lineXML(order, "opened");
+            // Sell Order: check account, sym, amount
+            else {
+                String msg = stockDB.checkSellOrder(order);
+                if (msg.equals("The Sell Order is valid.")) {
+                    stockDB.insertData(order);
+                    int response_trans_id = stockDB.getResponseID();
+                    // To Do: add trans_id field to response
+                    order.setOrderID(response_trans_id);
+                    xmLgenerator.lineXML(order, "opened");
+                } else {
+                    order.setErrorMessage(msg);
+                    xmLgenerator.lineXML(order, "error");
+                }
+                System.out.println(msg);
             }
-            else{
-                order.setErrorMessage(msg); 
-                xmLgenerator.lineXML(order, "error");  
-            }
-            System.out.println(msg);
-        }
 
-        // Handle Order Matching
-        ResultSet res = stockDB.search(order);
+            // Handle Order Matching
+            ResultSet res = stockDB.search(order);
+        } catch (SQLException e) {
+            order.setErrorMessage(e.getMessage());
+            xmLgenerator.lineXML(order, "error");
+        }
     }
 
 }

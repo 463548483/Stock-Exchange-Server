@@ -21,7 +21,7 @@ public class XMLgenerator {
     private Element result;//root element of response
     private Document document;
 
-    public XMLgenerator() {
+    public XMLgenerator()  {
         try{
             DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
             DocumentBuilder bd=factory.newDocumentBuilder();
@@ -29,8 +29,10 @@ public class XMLgenerator {
             result=document.createElement("result");
             document.appendChild(result);
         }catch(Exception e){
-            e.printStackTrace();
+            e.getStackTrace();
         }
+
+
 
     }
 
@@ -39,21 +41,17 @@ public class XMLgenerator {
     }
  
 
-    public void DOMtoXML(OutputStream response){
-        try{    
-            // create the xml file
-            //transform the DOM Object to an XML File
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            DOMSource domSource = new DOMSource(document);
-            StreamResult streamResult = new StreamResult(response);
-            transformer.transform(domSource, streamResult);
-            //return response;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        
+    public void DOMtoXML(OutputStream response) throws TransformerException{
+        // create the xml file
+        //transform the DOM Object to an XML File
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        DOMSource domSource = new DOMSource(document);
+        StreamResult streamResult = new StreamResult(response);
+        transformer.transform(domSource, streamResult);
+        //return response;
+
     }
 
 

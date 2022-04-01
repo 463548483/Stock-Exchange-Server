@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.concurrent.*;
+
 import javax.xml.parsers.*;
 import org.w3c.dom.Document;
 
@@ -18,20 +20,20 @@ public class Server {
     private ServerSocket socket;
     private static int task_id;
     private static db stockDB;
+    private static ExecutorService es;
 
     public Server() throws IOException, SQLException{
         socket=new ServerSocket(12345);
         task_id=0;
         stockDB = new db();
+        es=Executors.newFixedThreadPool(100);
 
     }
 
     public void listen() throws Exception {
-        while(true){
-            Socket socket = this.socket.accept();
-            task_id++;
-            new Thread(new Task(socket, task_id)).start();
-        } 
+        Socket socket = this.socket.accept();
+        task_id++;
+        es.submit(new Task(socket, task_id));
     }
 
     class Task implements Runnable {
@@ -95,14 +97,17 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         try {
             Server server = new Server();
             while (true){
                 server.listen();
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
+        } finally{
+            es.shutdown();
         }
     }
 }
