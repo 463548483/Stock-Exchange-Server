@@ -235,18 +235,18 @@ public class db {
         } else if (obj instanceof Order) {
             // buy Orders
             Order temp = (Order) obj;
-            double origin_price = temp.getLimit();
+            
             Statement st = connection.createStatement();
             String sql = "";
             if (temp.getType().equals("buy")) {
                 sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + "' and bound <= " + temp.getLimit()
-                        + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
+                        + " and status = 'open' and type = 'sell' and account_id !="+ temp.getAccountID() +" order by bound asc, time asc for update;";
                 //System.out.println(sql);
             } else if(temp.getType().equals("sell")){
                 sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + "' and bound >= " + temp.getLimit() 
-                        + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
+                        + " and status = 'open' and type = 'buy'  and account_id !="+ temp.getAccountID() +" order by bound desc, time asc for update;";
                 //System.out.println(sql);
             }
             res = st.executeQuery(sql);
@@ -259,31 +259,62 @@ public class db {
                 double balance_change = 0.0;
                 double seller_balance_change = 0.0;
                 if (temp.getType().equals("buy")) {
-                    balance_change = eorder.getAmount() * (origin_price-eorder.getPrice());
+                    double origin_buyer_price = temp.getLimit();
+                    balance_change = eorder.getAmount() * (origin_buyer_price-eorder.getPrice());
                     seller_balance_change = eorder.getAmount() * eorder.getPrice();
-                }
-                else if(temp.getType().equals("sell")){
-                    balance_change = eorder.getAmount() * eorder.getPrice();
-                    seller_balance_change = eorder.getAmount() * (origin_price-eorder.getPrice());
-                }
+                    System.out.println("----------------");
+                    System.out.println("The change balance of Buyer is : " + balance_change);
+                    System.out.println("The change balance of Seller is : " + seller_balance_change);
 
-                // update balance of Buyer & Seller
-                System.out.println("Info of E Order: " + eorder.getBuyerID() + eorder.getSellerID()+ eorder.getBuyerOrderID()+eorder.getSellerOrderID()+eorder.getSymbol()+eorder.getAmount()+ eorder.getPrice());
-                
-                Account buyer_account_temp = new Account(eorder.getBuyerID(), balance_change);
-                Account seller_account_temp = new Account(eorder.getSellerID(), seller_balance_change);
-                updateData(buyer_account_temp);
-                updateData(seller_account_temp);
-                // update position
-                if (temp.getType().equals("buy")) {
+                    // update balance of Buyer & Seller
+                    System.out.println("Info of E Order: " + eorder.getBuyerID() + eorder.getSellerID()+ eorder.getBuyerOrderID()+eorder.getSellerOrderID()+eorder.getSymbol()+eorder.getAmount()+ eorder.getPrice());
+                    
+                    Account buyer_account_temp = new Account(eorder.getBuyerID(), balance_change);
+                    Account seller_account_temp = new Account(eorder.getSellerID(), seller_balance_change);
+                    updateData(buyer_account_temp);
+                    updateData(seller_account_temp);
+
+                    // update buyer position
                     Position buyer_position = new Position(eorder.getSymbol(), eorder.getAmount(), eorder.getBuyerID());
                     System.out.println("Update position:" + eorder.getSymbol() + eorder.getAmount() +  eorder.getBuyerID() );
                     updateData(buyer_position);
+
+                    // seller position already updated when first came in.
                 }
-                //Position seller_position = new Position(eorder.getSymbol(), -eorder.getAmount(), eorder.getSellerID());
-                //updateData(seller_position);
+                else if(temp.getType().equals("sell")){
+                    String sql_help = "select * from order_all where order_id =" + eorder.getBuyerOrderID() + ";";
+                    res = st.executeQuery(sql_help);
+                    Double buyer_price = 0.0;
+                    if(res.next()){
+                        buyer_price = res.getDouble("BOUND");
+                        System.out.println("The original buyer price is: --" + buyer_price);
+                    }
+                    double original_buyer_price = buyer_price;
+
+
+                    balance_change = eorder.getAmount() * eorder.getPrice(); //seller
+                    seller_balance_change = eorder.getAmount() * (original_buyer_price-eorder.getPrice()); //buyer
+                    System.out.println("----------------");
+                    System.out.println("The change balance of Seller is : " + balance_change);
+                    System.out.println("The change balance of Buyer is : " + seller_balance_change);
+
+                    // update balance of Buyer & Seller
+                    System.out.println("Info of E Order: " + eorder.getBuyerID() + eorder.getSellerID()+ eorder.getBuyerOrderID()+eorder.getSellerOrderID()+eorder.getSymbol()+eorder.getAmount()+ eorder.getPrice());
+
+                    Account buyer_account_temp = new Account(eorder.getBuyerID(), seller_balance_change); //buyer
+
+                    Account seller_account_temp = new Account(eorder.getSellerID(), balance_change); //seller
+                    updateData(buyer_account_temp);
+                    updateData(seller_account_temp);
+
+                    // update position
+                    Position buyer_position = new Position(eorder.getSymbol(), eorder.getAmount(), eorder.getBuyerID());
+                    System.out.println("Update position:" + eorder.getSymbol() + eorder.getAmount() +  eorder.getBuyerID() );
+                    updateData(buyer_position);
+
+                }
             }
-            // Update Order in Order_all Table
+            // Update Order in Order_all Table : remain part
             Order new_order = matching.getOrder();
             updateData(new_order);
             
@@ -298,7 +329,7 @@ public class db {
         return res;
     }
 
-    public ArrayList<Order> searchOrder(int transaction_id) throws SQLException {
+    public ArrayList<Order> searchOrder(TransactionId transaction_id) throws SQLException {
         ArrayList<Order> query_order_list = new ArrayList<Order>();
         ResultSet res = search(transaction_id);
         Matching matching = new Matching();
@@ -368,8 +399,9 @@ public class db {
             double new_balance = balance + temp.getBalance();
             String sql_update = "update account set balance = " + new_balance + " where account_id = " + temp.getID()
                     + ";";
-            System.out.println(sql);
+            System.out.println(sql_update);
             st.executeUpdate(sql_update);
+
             // st.close();
             connection.commit();
         }
@@ -386,7 +418,7 @@ public class db {
             }
             double new_amount = amount + temp.getAmount();
             String sql_update = "update position set amount = " + new_amount + " where symbol = '" + temp.getSym() +"' and account_id = " + temp.getAccountID() + ";";
-            // System.out.println(sql);
+            System.out.println(sql);
             st.executeUpdate(sql_update);
             //st.close();
             connection.commit();
@@ -456,9 +488,9 @@ public class db {
     }
 
     // cancel order
-    public Pair<String, ArrayList<Order>> cancelOrder(int transaction_id) throws SQLException {
+    public Pair<String, ArrayList<Order>> cancelOrder(TransactionId transaction_id) throws SQLException {
         Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        String sql_search = "select * from order_all where order_id = " + transaction_id + " for update;";
+        String sql_search = "select * from order_all where order_id = " + transaction_id.getTransactionId() + " and account_id = " + transaction_id.getAccountId() + " for update;";
         System.out.println(sql_search);
         ResultSet queryres = st.executeQuery(sql_search);
 
@@ -480,11 +512,11 @@ public class db {
             updateData(new_position);
         }
 
-        String sql = "update order_all set status = 'canceled' where order_id = " + transaction_id + ";";
+        String sql = "update order_all set status = 'canceled' where order_id = " + transaction_id.getTransactionId() + ";";
         st.executeUpdate(sql);
         connection.commit();
         
-        String sql_search_cancel = "select * from order_all where order_id = " + transaction_id + ";";
+        String sql_search_cancel = "select * from order_all where order_id = " + transaction_id.getTransactionId() + ";";
         ResultSet query_cancel_res = st.executeQuery(sql_search_cancel);
 
         ArrayList<Order> cancel_list = matching.mapOrder(query_cancel_res);

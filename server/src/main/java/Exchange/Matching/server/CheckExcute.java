@@ -36,37 +36,36 @@ public class CheckExcute {
     }
 
     // For query Order & cancel Order
-    public void visit(int transactions_id, int action_flag) throws SQLException {
+    public void visit(TransactionId transactions_id, int action_flag) throws SQLException {
 
         if (action_flag == query_flag) {
             ResultSet res = stockDB.search(transactions_id);
             if (!res.next()) {
-                TransactionId queId = new TransactionId(transactions_id);
                 String errmsg = "Error: The queried Order does not exist.";
-                queId.setErrorMessage(errmsg);
-                xmLgenerator.lineXML(queId, "error");
+                transactions_id.setErrorMessage(errmsg);
+                xmLgenerator.lineXML(transactions_id, "error");
             } else {
                 String msg = "Found the query Order.";
                 System.out.println(msg);
                 // order_list: open/cancel orders in order_all
                 ArrayList<Order> order_list = stockDB.searchOrder(transactions_id);
-                TransactionId queId = new TransactionId(transactions_id);
-                Element status = xmLgenerator.lineXML(queId, "status");
+                Element status = xmLgenerator.lineXML(transactions_id, "status");
                 for (Order order : order_list) {
                     if (order.getAmount() == 0) {
                         continue;
                     }
-                    queId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
-                    xmLgenerator.lineXML(status, queId, queId.getStatus());
+                    transactions_id.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
+                    xmLgenerator.lineXML(status, transactions_id, transactions_id.getStatus());
                 }
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
                 System.out.println("The type of the order is: " + order.getType());
-                ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transactions_id, order.getType());
+                int transaction_id = transactions_id.getTransactionId();
+                ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transaction_id, order.getType());
                 if(execute_list != null){
                     for (ExecuteOrder eorder : execute_list) {
-                        queId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
-                        xmLgenerator.lineXML(status, queId, queId.getStatus());
+                        transactions_id.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
+                        xmLgenerator.lineXML(status, transactions_id, transactions_id.getStatus());
                     }
                 }
             }
@@ -75,13 +74,11 @@ public class CheckExcute {
         if (action_flag == cancel_flag) {
             ResultSet res = stockDB.search(transactions_id);
             if (!res.next()) {
-                TransactionId calId = new TransactionId(transactions_id);
                 String errmsg = "Error: Fail to cancel the Order, the order does not exist.";
-                calId.setErrorMessage(errmsg);
-                xmLgenerator.lineXML(calId, "error");
+                transactions_id.setErrorMessage(errmsg);
+                xmLgenerator.lineXML(transactions_id, "error");
             } else {
-                TransactionId calId = new TransactionId(transactions_id);
-                Element canceled = xmLgenerator.lineXML(calId, "canceled");
+                Element canceled = xmLgenerator.lineXML(transactions_id, "canceled");
                 Pair<String, ArrayList<Order>> pair = stockDB.cancelOrder(transactions_id);
                 ArrayList<Order> cancel_list = pair.getValue();
                 String type = pair.getKey();
@@ -89,19 +86,20 @@ public class CheckExcute {
                 String msg = "Successfully canceled the Order.";
                 System.out.println(msg);
 
-                ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transactions_id,type);
+                int transaction_id = transactions_id.getTransactionId();
+                ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transaction_id,type);
                 // add responses
                 for (Order order : cancel_list) {
                     if (order.getAmount() == 0) {
                         continue;
                     }
-                    calId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
-                    xmLgenerator.lineXML(canceled, calId, calId.getStatus());
+                    transactions_id.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
+                    xmLgenerator.lineXML(canceled, transactions_id, transactions_id.getStatus());
                 }
                 if(execute_cancel_list != null){
                     for (ExecuteOrder eorder : execute_cancel_list) {
-                        calId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
-                        xmLgenerator.lineXML(canceled, calId, calId.getStatus());
+                        transactions_id.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
+                        xmLgenerator.lineXML(canceled, transactions_id, transactions_id.getStatus());
                     }
                 }
             }

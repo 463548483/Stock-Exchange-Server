@@ -101,12 +101,14 @@ public class Proxy {
             case "query":
                 int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println("query_id: " + query_transaction_id);
-                checkExcute.visit(query_transaction_id,query_flag);
+                TransactionId query_transaction=new TransactionId(account_id, query_transaction_id);
+                checkExcute.visit(query_transaction,query_flag);
                 break;
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
                 System.out.println("cancel_id: " + cancel_transaction_id);
-                checkExcute.visit(cancel_transaction_id,cancel_flag);
+                TransactionId cancel_transaction=new TransactionId(account_id, cancel_transaction_id);
+                checkExcute.visit(cancel_transaction,cancel_flag);
                 break;
             }
         }
