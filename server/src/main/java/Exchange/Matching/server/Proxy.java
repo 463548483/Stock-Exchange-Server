@@ -21,7 +21,7 @@ public class Proxy {
         checkExcute=new CheckExcute(stockDB);
     }
 
-    public void create_parse(Node n) throws SQLException, IOException, TransformerException{
+    public String create_parse(Node n) throws SQLException, IOException, TransformerException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -65,10 +65,10 @@ public class Proxy {
                 break;
             }
         }
-        checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
+        return checkExcute.getXmLgenerator().DOMtoXML();
     }
 
-    public void transactions_parse(Node n) throws SQLException, IOException, TransformerException{
+    public String transactions_parse(Node n) throws SQLException, IOException, TransformerException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
         System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
@@ -112,6 +112,6 @@ public class Proxy {
                 break;
             }
         }
-        checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
+        return checkExcute.getXmLgenerator().DOMtoXML();
     }
 }

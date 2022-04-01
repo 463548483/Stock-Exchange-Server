@@ -1,6 +1,7 @@
 package Exchange.Matching.server;
 
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -41,16 +42,22 @@ public class XMLgenerator {
     }
  
 
-    public void DOMtoXML(OutputStream response) throws TransformerException{
+    public String DOMtoXML() throws TransformerException{
         // create the xml file
         //transform the DOM Object to an XML File
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        DOMSource domSource = new DOMSource(document);
-        StreamResult streamResult = new StreamResult(response);
-        transformer.transform(domSource, streamResult);
+        // DOMSource domSource = new DOMSource(document);
+        // StreamResult streamResult = new StreamResult(response);
+        // transformer.transform(domSource, streamResult);
         //return response;
+        StringWriter sw = new StringWriter();
+        StreamResult result = new StreamResult(sw);
+        DOMSource source = new DOMSource(document);
+        transformer.transform( source, result );
+        String nodeString = sw.getBuffer().toString();
+        return nodeString;
 
     }
 
