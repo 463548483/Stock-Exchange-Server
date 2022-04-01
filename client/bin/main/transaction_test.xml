@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <transactions id="1"> 
  <order sym="A" amount="100.00" limit="1.34"/>
- <order sym="A" amount="100000.00" limit="1.34"/><!--share insufficient-->
  <order sym="B" amount="-100.00" limit="2.88"/>
  <order sym="C" amount="200.00" limit="1.66"/>
  <query id="0001"/>
@@ -9,4 +8,5 @@
  <query id="0003"/>
  <query id="0004"/> <!--The queried Order does not exist.-->
  <cancel id="0001"/>
+  <query id="0001"/>
 </transactions>

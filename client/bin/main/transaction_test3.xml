@@ -5,8 +5,4 @@
   <order sym="A" amount="-50" limit="128"/>
   <order sym="A" amount="-20" limit="140"/>
   <order sym="B" amount="5000" limit="100"/>  <!--insufficient funds-->
-  <order sym="B" amount="5" limit="100"/>   
-  <order sym="C" amount="10" limit="50"/>  
-  <order sym="B" amount="-200000" limit="20000"/> <!--insufficient shares-->
-  <order sym="D" amount="200" limit="2000"/> <!--insufficient funds-->
 </transactions>

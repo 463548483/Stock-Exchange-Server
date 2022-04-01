@@ -102,11 +102,13 @@ public class CheckExcute {
     }
 
     public void visit(Position position) throws SQLException {
-        Account account_temp = new Account(position.getID(), 0);
+        Account account_temp = new Account(position.getAccountID(), 0);
         Symbol symbol_temp = new Symbol(position.getSym());
         
         ResultSet res_account = stockDB.search(account_temp);
         ResultSet res_sym = stockDB.search(symbol_temp);
+
+        ResultSet res_postion = stockDB.search(position);
 
         if (!res_account.next()) {
             position.setErrorMessage("Error: Account does not exist"); 
@@ -116,9 +118,15 @@ public class CheckExcute {
             if (!res_sym.next()) {
                 stockDB.insertData(symbol_temp);
             }
-            // create position
-            stockDB.insertData(position);
-            xmLgenerator.lineXML(position, "created");
+            if(!res_postion.next()){
+                // create position
+                stockDB.insertData(position);
+                xmLgenerator.lineXML(position, "created");    
+            }
+            else{
+                stockDB.updateData(position);
+                xmLgenerator.lineXML(position, "created");
+            }
         }
         
     }
@@ -130,7 +138,7 @@ public class CheckExcute {
         // Buy Order: account, symbol
         if(order.getType() == "buy"){
             String msg = stockDB.checkBuyOrder(order);
-            if(msg == "The Buy Order is valid."){
+            if(msg.equals("The Buy Order is valid.")){
                 stockDB.insertData(order);
                 // returned transaction_id
                 int response_trans_id = stockDB.getResponseID();
@@ -142,12 +150,12 @@ public class CheckExcute {
                 order.setErrorMessage(msg); 
                 xmLgenerator.lineXML(order, "error");
             };
-            System.out.println(msg);
+            System.out.println("yy-test"+msg);
         }
         // Sell Order: check account, sym, amount
         else{
             String msg = stockDB.checkSellOrder(order);
-            if(msg == "The Sell Order is valid."){
+            if(msg.equals("The Sell Order is valid.")){
                 stockDB.insertData(order);
                 int response_trans_id = stockDB.getResponseID();
                 // To Do: add trans_id field to response

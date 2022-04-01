@@ -15,7 +15,9 @@ public class Order extends XMLObject{
     private String type;
     private long time;
 
-    public Order(){}
+    public Order(){
+        this.time = Instant.now().getEpochSecond();
+    }
     
     // For create new Order
     public Order(int account_id,String symbol, double amount,double limit){
@@ -31,17 +33,17 @@ public class Order extends XMLObject{
             this.type = "sell";
         }
         this.time = Instant.now().getEpochSecond();
-        
     }
 
     // For Mapping SQL 
-    public Order(int account_id,String symbol, double amount,double limit, String status, String type){
+    public Order(int account_id,String symbol, double amount,double limit, String status, String type, long time){
         this.account_id=account_id;
         this.symbol=symbol;
         this.amount= Math.abs(amount);
         this.limit=limit;
         this.status = status;
         this.type = type;
+        this.time = time;
     }
     
     // For separating Order

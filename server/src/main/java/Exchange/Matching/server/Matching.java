@@ -50,7 +50,8 @@ public class Matching {
             double limit = res.getDouble("BOUND");
             String status = res.getString("STATUS");
             String type = res.getString("TYPE");
-            Order order = new Order(account_id, symbol, amount, limit, status, type);
+            Long time = res.getLong("TIME");
+            Order order = new Order(account_id, symbol, amount, limit, status, type, time);
             order_list.add(order);
         }
         return order_list;
