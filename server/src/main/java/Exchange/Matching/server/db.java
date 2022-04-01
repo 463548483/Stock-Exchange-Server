@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class db {
     private Connection connection;
-    private Matching matching;
+    //private Matching matching;
     private int reponse_trans_id;
 
     public db() throws SQLException {
@@ -17,7 +17,7 @@ public class db {
         connection.setAutoCommit(false);
         deleteTables();
         buildTables();
-        this.matching = new Matching();
+        //this.matching = new Matching();
     }
 
     /*
@@ -128,7 +128,7 @@ public class db {
             Symbol temp = (Symbol) obj;
             Statement st = connection.createStatement();
             String sql = "INSERT INTO SYM (SYMBOL) VALUES('" + temp.getSym() + "');";
-            System.out.println(sql);
+            //System.out.println(sql);
             st.executeUpdate(sql);
             // st.close();
             connection.commit();
@@ -168,7 +168,7 @@ public class db {
             if(res.next()){
                 trans_id = res.getInt("lastval");
             }
-            System.out.println("The transaction id is :" + trans_id);
+            //System.out.println("The transaction id is :" + trans_id);
             // st.close();
             this.reponse_trans_id = trans_id;
             connection.commit();
@@ -235,16 +235,16 @@ public class db {
             Order temp = (Order) obj;
             Statement st = connection.createStatement();
             String sql = "";
-            if (temp.getType() == "buy") {
-                sql = "select * from order_all where account_id !=" + temp.getAccountID() + " and symbol = '"
+            if (temp.getType().equals("buy")) {
+                sql = "select * from order_all where symbol = '"
                         + temp.getSymbol() + "' and bound <= " + temp.getLimit()
-                        + "and account_id <> " + temp.getAccountID() + " or account_id is null" + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
-                System.out.println(sql);
-            } else {
-                sql = "select * from order_all  where account_id !=" + temp.getAccountID() + " and symbol = '"
-                        + temp.getSymbol() + "' and bound >= " + temp.getLimit() + "and account_id <> " + temp.getAccountID() + " or account_id is null"
+                        + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
+                //System.out.println(sql);
+            } else if(temp.getType().equals("sell")){
+                sql = "select * from order_all where symbol = '"
+                        + temp.getSymbol() + "' and bound >= " + temp.getLimit() 
                         + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
-                System.out.println(sql);
+                //System.out.println(sql);
             }
             res = st.executeQuery(sql);
             // Order Matching
@@ -255,26 +255,25 @@ public class db {
                 insertData(eorder);
                 double balance_change = eorder.getAmount() * eorder.getPrice();
                 // update balance of Buyer & Seller
+                System.out.println("Info of E Order: " + eorder.getBuyerID() + eorder.getSellerID()+ eorder.getBuyerOrderID()+eorder.getSellerOrderID()+eorder.getSymbol()+eorder.getAmount()+ eorder.getPrice());
+                
                 Account buyer_account_temp = new Account(eorder.getBuyerID(), -balance_change);
                 Account seller_account_temp = new Account(eorder.getSellerID(), balance_change);
-                System.out.println("Out put before update any data.");
                 updateData(buyer_account_temp);
-                System.out.println("Out put before update any data 2 .");
                 updateData(seller_account_temp);
 
 
                 // update position
                 Position buyer_position = new Position(eorder.getSymbol(), eorder.getAmount(), eorder.getBuyerID());
                 System.out.println("Update position:" + eorder.getSymbol() + eorder.getAmount() +  eorder.getBuyerID() );
-                Position seller_position = new Position(eorder.getSymbol(), -eorder.getAmount(), eorder.getBuyerID());
+                Position seller_position = new Position(eorder.getSymbol(), -eorder.getAmount(), eorder.getSellerID());
                 updateData(buyer_position);
-                System.out.println("Out put before update any data 3 .");
                 updateData(seller_position);
-                System.out.println("Out put before update any data 4 .");
             }
             // Update Order in Order_all Table
             Order new_order = matching.getOrder();
             updateData(new_order);
+            
             ArrayList<Order> sell_order_list = matching.getSellList();
             for (Order sorder : sell_order_list) {
                 updateData(sorder);
@@ -289,6 +288,7 @@ public class db {
     public ArrayList<Order> searchOrder(int transaction_id) throws SQLException {
         ArrayList<Order> query_order_list = new ArrayList<Order>();
         ResultSet res = search(transaction_id);
+        Matching matching = new Matching();
         query_order_list = matching.mapOrder(res);
         return query_order_list;
     }
@@ -299,14 +299,15 @@ public class db {
         String sql = "";
         if (type.equals("buy")) {
             sql = "select * from order_execute where buyer_trans_id = " + transaction_id + ";";
-            System.out.println(sql);
+            //System.out.println(sql);
             
         } else if (type.equals("sell")) {
             sql = "select * from order_execute where seller_trans_id = " + transaction_id + ";";
-            System.out.println(sql);
+            //System.out.println(sql);
         }
         ResultSet res = st.executeQuery(sql);
         // st.close();
+        Matching matching = new Matching();
         query_execute_order = matching.mapExecuteOrder(res);
         connection.commit();
         return query_execute_order;
@@ -331,9 +332,9 @@ public class db {
         else if (obj instanceof Account) {
             Account temp = (Account) obj;
             Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            System.out.println("The ID of the account is: " + temp.getID());
+            //System.out.println("The ID of the account is: " + temp.getID());
             String sql = "select * from account where account_id = " + temp.getID() + " for update;";
-            System.out.println(sql);
+            //System.out.println(sql);
             ResultSet res = st.executeQuery(sql);
             double balance = 0.0;
             if(res.next()){
@@ -367,7 +368,7 @@ public class db {
             // System.out.println(sql);
             st.executeUpdate(sql_update);
             //st.close();
-            //connection.commit();
+            connection.commit();
         }
     }
 
@@ -382,18 +383,13 @@ public class db {
             return msg;
         }
         //check if the buyer Account exists
-        Statement st = connection.createStatement();
-        String sql = "select * from account where account_id = " + order.getAccountID() + ";";
-        ResultSet res = st.executeQuery(sql);
-        // st.close();
+        ResultSet res_account = search(new Account(order.getAccountID(),0));
         connection.commit();
-        if(!res.next()){
+        if(!res_account.next()){
             msg = "Error: The Account of the Buy Order does not exists."; 
             return msg;
         }
 
-        // Check if the Buyer Account exists and the balance is enough.
-        /*
         double need_balance = order.getAmount() * order.getLimit();
         Statement st = connection.createStatement();
         String sql = "select * from account where account_id = " + order.getAccountID() + " and balance >= "
@@ -404,7 +400,7 @@ public class db {
         if(!res.next()){
             msg = "Error: The balance of the Account is insufficient."; 
             return msg;
-        }*/
+        }
         msg = "The Buy Order is valid.";
         return msg;
     }
@@ -441,6 +437,7 @@ public class db {
         st.executeUpdate(sql);
         String sql_search_cancel = "select * from order_all where order_id = " + transaction_id + ";";
         ResultSet query_cancel_res = st.executeQuery(sql_search_cancel);
+        Matching matching = new Matching();
         ArrayList<Order> cancel_list = matching.mapOrder(query_cancel_res);
         // st.close();
         connection.commit();

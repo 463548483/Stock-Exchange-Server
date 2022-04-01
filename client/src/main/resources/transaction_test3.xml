@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<transactions id="2">
-  <order sym="A" amount="-5000" limit="100"/>   <!--insufficient shares-->
-  <order sym="A" amount="-10" limit="130"/>
-  <order sym="A" amount="-50" limit="128"/>
-  <order sym="A" amount="-20" limit="140"/>
-  <order sym="B" amount="5000" limit="100"/>  <!--insufficient funds-->
+<transactions id="2"> 
+ <order sym="A" amount="-100.00" limit="1.30"/><!--should have 80 sell to id=0002,20 sell to id=0001-->
+ <query id="0007"/>
+  <query id="0001"/>
+   <query id="0002"/>
+ <order sym="B" amount="100.00" limit="3.00"/><!--should buy from id=0003-->
+ <query id="0008"/>
+ <query id="0003"/>
+ <query id="0004"/>
+ <query id="0005"/> 
+ <order sym="C" amount="-100.00" limit="1.65"/>
+ <order sym="C" amount="-50.00" limit="1.67"/><!--price more than limit-->
+ <query id="0005"/>
+ <cancel id="0005"/>
+ <query id="0005"/>
 </transactions>

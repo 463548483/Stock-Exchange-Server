@@ -23,20 +23,21 @@ public class Order extends XMLObject{
     public Order(int account_id,String symbol, double amount,double limit){
         this.account_id=account_id;
         this.symbol=symbol;
-        this.amount= Math.abs(amount);
-        this.limit=limit;
-        this.status = "open"; // open/executed/cancel
         if(amount >= 0){
             this.type = "buy";
         }
         else{
             this.type = "sell";
         }
+        this.amount= Math.abs(amount);
+        this.limit=limit;
+        this.status = "open"; // open/executed/cancel
         this.time = Instant.now().getEpochSecond();
     }
 
     // For Mapping SQL 
-    public Order(int account_id,String symbol, double amount,double limit, String status, String type, long time){
+    public Order(int order_id, int account_id,String symbol, double amount,double limit, String status, String type, long time){
+        this.order_id = order_id;
         this.account_id=account_id;
         this.symbol=symbol;
         this.amount= Math.abs(amount);
