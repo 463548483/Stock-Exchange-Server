@@ -14,6 +14,8 @@ public class ExecuteOrder {
     private double price;
     private long time;
 
+    public ExecuteOrder(){}
+
     public ExecuteOrder(int bid, int sid, int buyer_trans_id, int seller_trans_id, String symbol, double amount, double price){
         this.buyer_id = bid;
         this.seller_id = sid;

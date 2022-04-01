@@ -2,28 +2,13 @@ package Exchange.Matching.server;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.zip.CheckedOutputStream;
 
-import javax.xml.parsers.*;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
-import com.google.common.xml.XmlEscapers;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 
 public class Proxy {
     private CheckExcute checkExcute;
@@ -36,7 +21,7 @@ public class Proxy {
         checkExcute=new CheckExcute(stockDB);
     }
 
-    public void create_parse(Node n) throws SQLException, TransformerException, IOException{
+    public void create_parse(Node n) throws SQLException, IOException, TransformerException{
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "account":
@@ -74,7 +59,6 @@ public class Proxy {
                             System.out.println(x.getNodeName()+": "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
                             checkExcute.visit(position);
-
                         }
                     }
                 }
@@ -84,7 +68,7 @@ public class Proxy {
         checkExcute.getXmLgenerator().DOMtoXML(socket.getOutputStream());
     }
 
-    public void transactions_parse(Node n) throws SQLException, IOException{
+    public void transactions_parse(Node n) throws SQLException, IOException, TransformerException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
         System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {

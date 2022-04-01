@@ -3,7 +3,7 @@ package Exchange.Matching.server;
 import java.util.Map;
 
 public abstract class XMLObject extends Object {
-    private String errorMessage;
+    protected String errorMessage;
 
     public abstract Map<String,String> getAttribute();
     

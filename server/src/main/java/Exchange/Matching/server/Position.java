@@ -22,7 +22,7 @@ public class Position extends XMLObject {
         return this.amount;
     }
 
-    public int getID(){
+    public int getAccountID(){
         return this.account_id;
     }
 
@@ -30,7 +30,7 @@ public class Position extends XMLObject {
     @Override
     public Map<String,String> getAttribute(){
         Map<String,String> map=new LinkedHashMap<String,String>();
-        map.put("SYM",symbol);
+        map.put("sym",symbol);
         map.put("id",Integer.toString(account_id));
         return map;
     }

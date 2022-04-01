@@ -3,48 +3,37 @@
  */
 package Exchange.Matching.server;
 
-import Exchange.Matching.server.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.concurrent.*;
 
 import javax.xml.parsers.*;
-
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
 
 public class Server {
     private ServerSocket socket;
     private static int task_id;
     private static db stockDB;
+    private static ExecutorService es;
 
     public Server() throws IOException, SQLException{
         socket=new ServerSocket(12345);
         task_id=0;
         stockDB = new db();
+        es=Executors.newFixedThreadPool(100);
 
     }
 
     public void listen() throws Exception {
         Socket socket = this.socket.accept();
         task_id++;
-        new Thread(new Task(socket, task_id)).start();
+        es.submit(new Task(socket, task_id));
     }
 
     class Task implements Runnable {
@@ -108,14 +97,17 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
         try {
             Server server = new Server();
             while (true){
                 server.listen();
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
+        } finally{
+            es.shutdown();
         }
     }
 }

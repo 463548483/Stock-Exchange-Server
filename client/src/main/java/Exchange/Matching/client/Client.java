@@ -1,35 +1,28 @@
 package Exchange.Matching.client;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.Scanner;
 
-public class Client extends Socket {
+public class Client extends Socket implements Runnable {
     private static final String hostName = "127.0.0.1";
     private static final int portNum = 12345;
     private Socket socket;
     private DataOutputStream toTrans;
+    private String filename;
 
-    public Client() throws UnknownHostException, IOException {
+    public Client(String filename) throws UnknownHostException, IOException {
         super(hostName, portNum);
         this.socket = this;
         System.out.println("Client connected");
+        this.filename=filename;
     }
 
-    public void send(String filename) throws Exception {
+    public void send() throws Exception {
 
         try (Scanner scanner = new Scanner(getClass().getClassLoader().getResourceAsStream(filename))) {
             toTrans = new DataOutputStream(socket.getOutputStream());
@@ -50,7 +43,18 @@ public class Client extends Socket {
     }
 
     public void receive() throws IOException {
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
+        try {
+            // DataInputStream dis=new DataInputStream(socket.getInputStream());
+            // File file = new File("response.xml");
+            // FileOutputStream fos=new FileOutputStream(file);
+            // byte[] bytes = new byte[1024];
+            // int length = 0;
+            // while((length = dis.read(bytes, 0, bytes.length)) != -1) {
+            //     fos.write(bytes, 0, length);
+            //     fos.flush();
+            // }
+            // fos.close();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             while (true) {
                 String str = bufferedReader.readLine();
                 if (str == null) {
@@ -66,12 +70,30 @@ public class Client extends Socket {
         }
     }
 
-    public static void main(String[] args) {
-        try (Client client = new Client()) {
-            client.send(args[0]);
-            client.receive();
+    @Override
+    public void run(){
+        try {
+            send();
+            receive();
         } catch (Exception e) {
-            e.printStackTrace();           
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
+
+    public static void main(String[] args) {
+        for (int i=0;i<Integer.parseInt(args[1]);i++){
+            Thread t;
+            try {
+                t = new Thread(new Client(args[0]));
+                t.start();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } 
+            
+            
         }
 
     }

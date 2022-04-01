@@ -21,7 +21,7 @@ public class XMLgenerator {
     private Element result;//root element of response
     private Document document;
 
-    public XMLgenerator() {
+    public XMLgenerator()  {
         try{
             DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
             DocumentBuilder bd=factory.newDocumentBuilder();
@@ -29,8 +29,10 @@ public class XMLgenerator {
             result=document.createElement("result");
             document.appendChild(result);
         }catch(Exception e){
-            e.printStackTrace();
+            e.getStackTrace();
         }
+
+
 
     }
 
@@ -39,37 +41,47 @@ public class XMLgenerator {
     }
  
 
-    public void DOMtoXML(OutputStream response){
-        try{    
-            // create the xml file
-            //transform the DOM Object to an XML File
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            DOMSource domSource = new DOMSource(document);
-            StreamResult streamResult = new StreamResult(response);
-            transformer.transform(domSource, streamResult);
-            //return response;
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        
+    public void DOMtoXML(OutputStream response) throws TransformerException{
+        // create the xml file
+        //transform the DOM Object to an XML File
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        DOMSource domSource = new DOMSource(document);
+        StreamResult streamResult = new StreamResult(response);
+        transformer.transform(domSource, streamResult);
+        //return response;
+
     }
 
 
-    public void lineXML(XMLObject XMLobject,String status){
+    public Element lineXML(XMLObject XMLobject,String status){
         
-        Element accountStatus=document.createElement(status);
+        Element Status=document.createElement(status);
         if (status=="error"){
-            accountStatus.appendChild(document.createTextNode(XMLobject.getErrorMessage()));
+            Status.appendChild(document.createTextNode(XMLobject.getErrorMessage()));
         }
         Map<String,String> arrMap=XMLobject.getAttribute();
         for (String arr:arrMap.keySet()){
             Attr attr = document.createAttribute(arr);
             attr.setValue(arrMap.get(arr));
-            accountStatus.setAttributeNode(attr);
+            Status.setAttributeNode(attr);
         }
-        result.appendChild(accountStatus);
+        result.appendChild(Status);
+        return Status;
+    }
+
+    public Element lineXML(Element root,TransactionId transactionId,String status){
+        
+        Element Status=document.createElement(status);
+        Map<String,String> arrMap=transactionId.getChild();
+        for (String arr:arrMap.keySet()){
+            Attr attr = document.createAttribute(arr);
+            attr.setValue(arrMap.get(arr));
+            Status.setAttributeNode(attr);
+        }
+        root.appendChild(Status);
+        return Status;
     }
 
 }

@@ -14,6 +14,10 @@ public class TransactionId extends XMLObject {
 
     public TransactionId(int id){
         transactionId=id;
+        this.shares=0;
+        this.price=0;
+        this.time=0;
+        this.status="";
     }
 
     public TransactionId(int id,double shares,double price,long time,String status){
@@ -22,6 +26,7 @@ public class TransactionId extends XMLObject {
         this.price=price;
         this.time=time;
         this.status=status;
+        
     }
 
     public int getTransactionId(){
@@ -32,16 +37,30 @@ public class TransactionId extends XMLObject {
         return status;
     }
 
+    public void updateOrder(double shares,double price,long time,String status){
+        this.shares=shares;
+        this.price=price;
+        this.time=time;
+        this.status=status;
+    }
+
     @Override
     public Map<String, String> getAttribute() {
         Map<String,String> map=new LinkedHashMap<String,String>();
+        map.put("id", Integer.toString(transactionId));
+        return map;
+    }
+
+    public Map<String, String> getChild(){
+        Map<String,String> map=new LinkedHashMap<String,String>();
         map.put("shares",Double.toString(shares));
-        if (price!=0){
+        if (status.equals("executed")){
             map.put("price", Double.toString(price));
         }
-        if (time!=0){
+        if (status.equals("canceled")||status.equals("executed")){
             map.put("time",Long.toString(time));
         }
+
         return map;
     }
     
