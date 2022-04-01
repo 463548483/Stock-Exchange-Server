@@ -58,6 +58,7 @@ public class CheckExcute {
                 }
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
+                System.out.println("The type of the order is: " + order.getType());
                 ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transactions_id, order.getType());
                 for(ExecuteOrder eorder: execute_list){
                     queId.updateOrder(eorder.getAmount(), eorder.getPrice(), eorder.getTime(), "executed");
@@ -75,10 +76,16 @@ public class CheckExcute {
             } else {
                 TransactionId calId=new TransactionId(transactions_id);
                 Element canceled=xmLgenerator.lineXML(calId, "canceled");
-                ArrayList<Order> cancel_list = stockDB.cancelOrder(transactions_id);
+                ArrayList<Order> cancel_list = stockDB.cancelOrder(transactions_id).getValue();
                 String msg = "Successfully canceled the Order.";
                 System.out.println(msg);
+
+                ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transactions_id, stockDB.cancelOrder(transactions_id).getKey());
                 // add responses
+                for(Order order: cancel_list){
+                    calId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
+                    xmLgenerator.lineXML(canceled,calId, calId.getStatus());
+                }
                 for(Order order: cancel_list){
                     calId.updateOrder(order.getAmount(), order.getLimit(), order.getTime(), order.getStatus());
                     xmLgenerator.lineXML(canceled,calId, calId.getStatus());

@@ -69,7 +69,7 @@ public class db {
                 "POSITION_ID SERIAL PRIMARY KEY," +
                 "ACCOUNT_ID INT," +
                 "SYMBOL VARCHAR," +
-                "AMOUNT FLOAT," +
+                "AMOUNT FLOAT CHECK (AMOUNT >= 0)," +
                 "CONSTRAINT POSITION_FK FOREIGN KEY (ACCOUNT_ID) REFERENCES ACCOUNT(ACCOUNT_ID) ON DELETE SET NULL ON UPDATE CASCADE);";
 
         String sql_account = "CREATE TABLE ACCOUNT(" + "ACCOUNT_ID INT PRIMARY KEY," + "BALANCE FLOAT CHECK(BALANCE>=0));";
@@ -79,7 +79,7 @@ public class db {
                 "ACCOUNT_ID INT," +
                 "SYMBOL VARCHAR," +
                 "AMOUNT FLOAT," +
-                "BOUND FLOAT," +
+                "BOUND FLOAT CHECK(BOUND >= 0)," +
                 "STATUS VARCHAR," +
                 "TYPE VARCHAR," +
                 "TIME BIGINT," +
@@ -123,7 +123,7 @@ public class db {
     /*
      * Insert Date into DB according to Object type
      */
-    public void insertData(Object obj) throws SQLException {
+    public void insertData(Object obj) throws SQLException{
         if (obj instanceof Symbol) {
             Symbol temp = (Symbol) obj;
             Statement st = connection.createStatement();
@@ -429,19 +429,23 @@ public class db {
     }
 
     // cancel order
-    public ArrayList<Order> cancelOrder(int transaction_id) throws SQLException {
+    public Pair<String, ArrayList<Order>> cancelOrder(int transaction_id) throws SQLException {
         Statement st = connection.createStatement();
         String sql_search = "select * from order_all where order_id = " + transaction_id + " for update;";
         ResultSet queryres = st.executeQuery(sql_search);
         String sql = "update order_all set status = 'canceled' where order_id = " + transaction_id + ";";
         st.executeUpdate(sql);
+
+        
         String sql_search_cancel = "select * from order_all where order_id = " + transaction_id + ";";
         ResultSet query_cancel_res = st.executeQuery(sql_search_cancel);
         Matching matching = new Matching();
         ArrayList<Order> cancel_list = matching.mapOrder(query_cancel_res);
-        // st.close();
+        String type = query_cancel_res.getString("TYPE");
+
         connection.commit();
-        return cancel_list;
+        Pair<String, ArrayList<Order>> pair = new Pair<String, ArrayList<Order>>(type, cancel_list);
+		return pair;
     }
 
 

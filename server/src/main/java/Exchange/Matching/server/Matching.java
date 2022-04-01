@@ -91,9 +91,17 @@ public class Matching {
                     } else {
                         price = or.getLimit();
                     }
-                    ExecuteOrder eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
-                            or.getOrderID(), or.getSymbol(),
-                            buy_amount, price);
+                    ExecuteOrder eorder = new ExecuteOrder();
+                    if(order.getType().equals("buy")){
+                        eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
+                        or.getOrderID(), or.getSymbol(),
+                        buy_amount, price);
+                    }
+                    else if(order.getType().equals("sell")){
+                        eorder = new ExecuteOrder(or.getAccountID(), order.getAccountID(), or.getOrderID(),
+                        order.getOrderID(), order.getSymbol(),
+                        buy_amount, price);
+                    }
                     execute_list.add(eorder);
                     buy_amount = 0;
                     sell_amount = 0;
@@ -108,9 +116,17 @@ public class Matching {
                     } else {
                         price = or.getLimit();
                     }
-                    ExecuteOrder eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
-                            or.getOrderID(), or.getSymbol(),
-                            sell_amount, price);
+                    ExecuteOrder eorder = new ExecuteOrder();
+                    if(order.getType().equals("buy")){
+                        eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
+                        or.getOrderID(), or.getSymbol(),
+                        sell_amount, price);
+                    }
+                    else if(order.getType().equals("sell")){
+                        eorder = new ExecuteOrder(or.getAccountID(), order.getAccountID(), or.getOrderID(),
+                        order.getOrderID(), order.getSymbol(),
+                        sell_amount, price);
+                    }
                     execute_list.add(eorder);
                     buy_amount -= sell_amount;
                     sell_amount = 0;
@@ -124,9 +140,17 @@ public class Matching {
                     } else {
                         price = or.getLimit();
                     }
-                    ExecuteOrder eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
-                            or.getOrderID(), or.getSymbol(),
-                            buy_amount, price);
+                    ExecuteOrder eorder = new ExecuteOrder();
+                    if(order.getType().equals("buy")){
+                        eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
+                        or.getOrderID(), or.getSymbol(),
+                        buy_amount, price);
+                    }
+                    else if(order.getType().equals("sell")){
+                        eorder = new ExecuteOrder(or.getAccountID(), order.getAccountID(), or.getOrderID(),
+                        order.getOrderID(), order.getSymbol(),
+                        buy_amount, price);
+                    }
                     System.out.println("Exe Order: " + order.getAccountID() + or.getAccountID()+ order.getOrderID()+or.getOrderID()+or.getSymbol()+buy_amount+ price);
                     execute_list.add(eorder);
                     sell_amount -= buy_amount;
