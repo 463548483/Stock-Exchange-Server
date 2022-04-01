@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.swing.Spring;
 
 public class TransactionId extends XMLObject {
+    private int accountId;
     private int transactionId;
     private double shares;
     private double price;
@@ -27,6 +28,10 @@ public class TransactionId extends XMLObject {
         this.time=time;
         this.status=status;
         
+    }
+
+    public int getAccountId(){
+        return accountId;
     }
 
     public int getTransactionId(){

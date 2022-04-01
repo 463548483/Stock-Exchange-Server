@@ -82,8 +82,9 @@ public class CheckExcute {
             } else {
                 TransactionId calId = new TransactionId(transactions_id);
                 Element canceled = xmLgenerator.lineXML(calId, "canceled");
-                ArrayList<Order> cancel_list = stockDB.cancelOrder(transactions_id).getValue();
-                String type = stockDB.cancelOrder(transactions_id).getKey();
+                Pair<String, ArrayList<Order>> pair = stockDB.cancelOrder(transactions_id);
+                ArrayList<Order> cancel_list = pair.getValue();
+                String type = pair.getKey();
                 System.out.println("The type pf the cancel order is:" + type);
                 String msg = "Successfully canceled the Order.";
                 System.out.println(msg);
