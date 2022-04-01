@@ -44,6 +44,7 @@ public class Matching {
     public ArrayList<Order> mapOrder(ResultSet res) throws SQLException {
         ArrayList<Order> order_list = new ArrayList<Order>();
         while (res.next()) {
+            int order_id = res.getInt("ORDER_ID");
             int account_id = res.getInt("ACCOUNT_ID");
             String symbol = res.getString("SYMBOL");
             double amount = res.getDouble("AMOUNT");
@@ -51,7 +52,7 @@ public class Matching {
             String status = res.getString("STATUS");
             String type = res.getString("TYPE");
             Long time = res.getLong("TIME");
-            Order order = new Order(account_id, symbol, amount, limit, status, type, time);
+            Order order = new Order(order_id,account_id, symbol, amount, limit, status, type, time);
             order_list.add(order);
         }
         return order_list;
@@ -79,6 +80,7 @@ public class Matching {
     public void matchOrder() {
         double buy_amount = order.getAmount();
         for (Order or : order_list) {
+            System.out.println("Info of the Order - order trans ID" + or.getOrderID());
             double sell_amount = or.getAmount();
             double price = 0;
             if (buy_amount > 0) {
@@ -110,8 +112,8 @@ public class Matching {
                             or.getOrderID(), or.getSymbol(),
                             sell_amount, price);
                     execute_list.add(eorder);
-                    sell_amount = 0;
                     buy_amount -= sell_amount;
+                    sell_amount = 0;
                     order.setAmount(buy_amount);
                     or.setAmount(sell_amount);
                     sell_order_list.add(or);
@@ -125,9 +127,10 @@ public class Matching {
                     ExecuteOrder eorder = new ExecuteOrder(order.getAccountID(), or.getAccountID(), order.getOrderID(),
                             or.getOrderID(), or.getSymbol(),
                             buy_amount, price);
+                    System.out.println("Exe Order: " + order.getAccountID() + or.getAccountID()+ order.getOrderID()+or.getOrderID()+or.getSymbol()+buy_amount+ price);
                     execute_list.add(eorder);
-                    buy_amount = 0;
                     sell_amount -= buy_amount;
+                    buy_amount = 0;
                     order.setAmount(buy_amount);
                     or.setAmount(sell_amount);
                     // update remaining Sell Order
