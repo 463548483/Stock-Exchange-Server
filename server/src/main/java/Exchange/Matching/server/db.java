@@ -236,12 +236,12 @@ public class db {
             Statement st = connection.createStatement();
             String sql = "";
             if (temp.getType() == "buy") {
-                sql = "select * from order_all where symbol = '"
+                sql = "select * from order_all where account_id !=" + temp.getAccountID() + " and symbol = '"
                         + temp.getSymbol() + "' and bound <= " + temp.getLimit()
                         + "and account_id <> " + temp.getAccountID() + " or account_id is null" + " and status = 'open' and type = 'sell' order by bound asc, time asc for update;";
                 System.out.println(sql);
             } else {
-                sql = "select * from order_all where symbol = '"
+                sql = "select * from order_all  where account_id !=" + temp.getAccountID() + " and symbol = '"
                         + temp.getSymbol() + "' and bound >= " + temp.getLimit() + "and account_id <> " + temp.getAccountID() + " or account_id is null"
                         + " and status = 'open' and type = 'buy' order by bound desc, time asc for update;";
                 System.out.println(sql);
