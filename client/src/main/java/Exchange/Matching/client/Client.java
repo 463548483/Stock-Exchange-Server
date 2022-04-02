@@ -1,6 +1,8 @@
 package Exchange.Matching.client;
 
 import java.io.BufferedReader;
+import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -54,7 +56,12 @@ public class Client extends Socket implements Runnable {
             //     fos.flush();
             // }
             // fos.close();
+            DataInputStream Trans = new DataInputStream(socket.getInputStream());
+                
+            int fileLen = Trans.readInt();
+            System.out.println(fileLen);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
             while (true) {
                 String str = bufferedReader.readLine();
                 if (str == null) {
