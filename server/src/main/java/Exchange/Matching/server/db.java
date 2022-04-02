@@ -45,7 +45,7 @@ public class db {
      * Delete Tables in DB
      * 
      */
-    private void deleteTables() throws SQLException {
+    private synchronized void deleteTables() throws SQLException {
         Statement st = connection.createStatement();
         String sql_delete = "DROP TABLE IF EXISTS SYM, POSITION, ACCOUNT, ORDER_ALL, ORDER_EXECUTE;";
         st.executeUpdate(sql_delete);
@@ -58,7 +58,7 @@ public class db {
      * 
      * @throws SQLException
      */
-    private void buildTables() throws SQLException {
+    private synchronized void buildTables() throws SQLException {
         Statement st = connection.createStatement();
 
         String sql_sym = "CREATE TABLE SYM(" +
@@ -116,7 +116,7 @@ public class db {
      * 
      * @throws SQLException
      */
-    private void closeConnection() throws SQLException {
+    private synchronized void closeConnection() throws SQLException {
         connection.close();
     }
 
@@ -194,7 +194,7 @@ public class db {
      * 
      * @return ResultSet
      */
-    public ResultSet search(Object obj) throws SQLException {
+    public synchronized ResultSet search(Object obj) throws SQLException {
         ResultSet res = null;
         if (obj instanceof Symbol) {
             Symbol temp = (Symbol) obj;
@@ -329,7 +329,7 @@ public class db {
         return res;
     }
 
-    public ArrayList<Order> searchOrder(TransactionId transaction_id) throws SQLException {
+    public synchronized ArrayList<Order> searchOrder(TransactionId transaction_id) throws SQLException {
         ArrayList<Order> query_order_list = new ArrayList<Order>();
         ResultSet res = search(transaction_id);
         Matching matching = new Matching();
@@ -337,7 +337,7 @@ public class db {
         return query_order_list;
     }
 
-    public ArrayList<ExecuteOrder> searchExecuteOrder(int transaction_id, String type) throws SQLException {
+    public synchronized ArrayList<ExecuteOrder> searchExecuteOrder(int transaction_id, String type) throws SQLException {
         ArrayList<ExecuteOrder> query_execute_order = new ArrayList<ExecuteOrder>();
         Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         String sql = "";
@@ -368,7 +368,7 @@ public class db {
     /*
      * Updata Data in tables.
      */
-    public void updateData(Object obj) throws SQLException {
+    public synchronized void updateData(Object obj) throws SQLException {
         // update order amount
         if (obj instanceof Order) {
             Order temp = (Order) obj;
@@ -426,7 +426,7 @@ public class db {
     }
 
     // help check whether the buy order is valid or not.
-    public String checkBuyOrder(Order order) throws SQLException {
+    public synchronized String checkBuyOrder(Order order) throws SQLException {
         String msg = "";
         
         // Check if the symbol exsits.
@@ -463,7 +463,7 @@ public class db {
     }
 
     // help check whether the sell order is valid or not.
-    public String checkSellOrder(Order order) throws SQLException {
+    public synchronized String checkSellOrder(Order order) throws SQLException {
         String msg = "";
         Statement st = connection.createStatement();
         ResultSet res_account = search(new Account(order.getAccountID(), 0));
@@ -488,7 +488,7 @@ public class db {
     }
 
     // cancel order
-    public Pair<String, ArrayList<Order>> cancelOrder(TransactionId transaction_id) throws SQLException {
+    public synchronized Pair<String, ArrayList<Order>> cancelOrder(TransactionId transaction_id) throws SQLException {
         Statement st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         String sql_search = "select * from order_all where order_id = " + transaction_id.getTransactionId() + " and account_id = " + transaction_id.getAccountId() + " for update;";
         //System.out.println(sql_search);

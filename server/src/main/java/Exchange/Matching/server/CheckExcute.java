@@ -46,7 +46,7 @@ public class CheckExcute {
                 xmLgenerator.lineXML(transactions_id, "error");
             } else {
                 String msg = "Found the query Order.";
-                System.out.println(msg);
+                //System.out.println(msg);
                 // order_list: open/cancel orders in order_all
                 ArrayList<Order> order_list = stockDB.searchOrder(transactions_id);
                 Element status = xmLgenerator.lineXML(transactions_id, "status");
@@ -82,9 +82,9 @@ public class CheckExcute {
                 Pair<String, ArrayList<Order>> pair = stockDB.cancelOrder(transactions_id);
                 ArrayList<Order> cancel_list = pair.getValue();
                 String type = pair.getKey();
-                System.out.println("The type pf the cancel order is:" + type);
+                //System.out.println("The type pf the cancel order is:" + type);
                 String msg = "Successfully canceled the Order.";
-                System.out.println(msg);
+                //System.out.println(msg);
 
                 int transaction_id = transactions_id.getTransactionId();
                 ArrayList<ExecuteOrder> execute_cancel_list = stockDB.searchExecuteOrder(transaction_id,type);
@@ -126,7 +126,7 @@ public class CheckExcute {
 
     }
 
-    public void visit(Position position) {
+    public  void visit(Position position) {
         try {
             Account account_temp = new Account(position.getAccountID(), 0);
             Symbol symbol_temp = new Symbol(position.getSym());
@@ -161,7 +161,7 @@ public class CheckExcute {
     }
 
     // handle new Order
-    public void visit(Order order) {
+    public  void visit(Order order) {
         // check if the Order is Valid or Not
         // System.out.println("The type of the new order is: " + order.getType());
         // Buy Order: account, symbol
@@ -180,7 +180,7 @@ public class CheckExcute {
                     xmLgenerator.lineXML(order, "error");
                 }
                 ;
-                System.out.println("yy-test" + msg);
+                //System.out.println("yy-test" + msg);
             }
             // Sell Order: check account, sym, amount
             else {
@@ -195,7 +195,7 @@ public class CheckExcute {
                     order.setErrorMessage(msg);
                     xmLgenerator.lineXML(order, "error");
                 }
-                System.out.println(msg);
+                //System.out.println(msg);
             }
 
             // Handle Order Matching
