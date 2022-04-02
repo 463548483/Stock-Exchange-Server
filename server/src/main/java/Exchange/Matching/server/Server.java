@@ -5,6 +5,7 @@ package Exchange.Matching.server;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -20,6 +21,7 @@ public class Server {
     private ServerSocket socket;
     private static int task_id;
     private static db stockDB;
+
     private static ExecutorService es;
 
     public Server() throws IOException, SQLException{
@@ -41,6 +43,7 @@ public class Server {
         private DataInputStream Trans;
         private int task_id;
         private Proxy proxy;
+        String response;
 
         public Task(Socket socket, int task_id) {
             this.socket = socket;
@@ -50,9 +53,17 @@ public class Server {
         }
 
         public void send() throws Exception {
-            try (OutputStream response = socket.getOutputStream()){
+            try {
                 //response.write(proxy.ge.getBytes());
-                response.flush();
+                //response.flush();
+
+                DataOutputStream toTrans = new DataOutputStream(socket.getOutputStream());
+                byte[] data = response.getBytes();
+                int len = data.length + 4;
+                toTrans.writeInt(len);
+                toTrans.flush();
+                toTrans.write(data);
+                toTrans.flush();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -68,7 +79,7 @@ public class Server {
                 int fileLen = Trans.readInt();
                 byte[] data = new byte[fileLen - 4];
                 Trans.readFully(data);
-                System.out.println(fileLen);
+                //System.out.println(fileLen);
                 
 
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -76,13 +87,13 @@ public class Server {
                 Document doc = builder.parse(new ByteArrayInputStream(data));
                 switch (doc.getFirstChild().getNodeName()) {
                     case "create":
-                        proxy.create_parse(doc.getFirstChild());
+                        response=proxy.create_parse(doc.getFirstChild());
                         break;
                     case "transactions":
-                        proxy.transactions_parse(doc.getFirstChild());
+                        response=proxy.transactions_parse(doc.getFirstChild());
                         break;
                 }
-                System.out.println("finish generate response");
+                //System.out.println("finish generate response");
                 send();
             } catch (Exception e) {
                 e.printStackTrace();
