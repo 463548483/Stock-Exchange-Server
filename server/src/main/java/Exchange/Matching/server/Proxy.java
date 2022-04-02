@@ -41,8 +41,8 @@ public class Proxy {
                 } 
                 
                 Account account=new Account(id,balance);
-                //System.out.println("id: " + id);
-                //System.out.println("balance: " + balance);
+                ////System.out.println("id: " + id);
+                ////System.out.println("balance: " + balance);
                 checkExcute.visit(account);
                 break;
             case "symbol":
@@ -52,11 +52,11 @@ public class Proxy {
                     if (sym_child.getNodeName()=="account"){
                         NamedNodeMap sym_account=sym_child.getAttributes();
                         double sym_amount=Double.parseDouble(sym_child.getTextContent());
-                        System.out.println("balance" + ": " + sym_child.getTextContent());
+                        //System.out.println("balance" + ": " + sym_child.getTextContent());
                         for(int j=0;j<sym_account.getLength();j++){
                             Node x=sym_account.item(j);
                             int sym_accountid=Integer.parseInt(x.getNodeValue());
-                            System.out.println(x.getNodeName()+": "+x.getNodeValue());
+                            //System.out.println(x.getNodeName()+": "+x.getNodeValue());
                             Position position=new Position(symbol_name, sym_amount, sym_accountid);
                             checkExcute.visit(position);
                         }
@@ -70,7 +70,7 @@ public class Proxy {
 
     public String transactions_parse(Node n) throws SQLException, IOException, TransformerException{
         int account_id=Integer.parseInt(n.getAttributes().item(0).getNodeValue());
-        System.out.println("account id: " + account_id);
+        //System.out.println("account id: " + account_id);
         for (Node child = n.getFirstChild(); child != null; child = child.getNextSibling()) {
             switch (child.getNodeName()){
             case "order":
@@ -83,15 +83,15 @@ public class Proxy {
                     switch (x.getNodeName()){
                         case "sym":
                             symbol=x.getNodeValue();
-                            System.out.println("symbol: " + symbol);
+                            //System.out.println("symbol: " + symbol);
                             break;
                         case "amount":
                             amount=Double.parseDouble(x.getNodeValue());
-                            System.out.println("amount: " + amount);
+                            //System.out.println("amount: " + amount);
                             break;
                         case "limit":
                             limit=Double.parseDouble(x.getNodeValue());
-                            System.out.println("limit: " + limit);
+                            //System.out.println("limit: " + limit);
                             break;
                     }
                 }                               
@@ -100,13 +100,13 @@ public class Proxy {
                 break;
             case "query":
                 int query_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println("query_id: " + query_transaction_id);
+                //System.out.println("query_id: " + query_transaction_id);
                 TransactionId query_transaction=new TransactionId(account_id, query_transaction_id);
                 checkExcute.visit(query_transaction,query_flag);
                 break;
             case "cancel":
                 int cancel_transaction_id=Integer.parseInt(child.getAttributes().item(0).getNodeValue());
-                System.out.println("cancel_id: " + cancel_transaction_id);
+                //System.out.println("cancel_id: " + cancel_transaction_id);
                 TransactionId cancel_transaction=new TransactionId(account_id, cancel_transaction_id);
                 checkExcute.visit(cancel_transaction,cancel_flag);
                 break;

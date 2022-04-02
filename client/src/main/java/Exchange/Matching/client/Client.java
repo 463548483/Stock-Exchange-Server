@@ -20,7 +20,7 @@ public class Client extends Socket implements Runnable {
     public Client(String filename) throws UnknownHostException, IOException {
         super(hostName, portNum);
         this.socket = this;
-        System.out.println("Client connected");
+        //System.out.println("Client connected");
         this.filename=filename;
     }
 
@@ -59,7 +59,7 @@ public class Client extends Socket implements Runnable {
             DataInputStream Trans = new DataInputStream(socket.getInputStream());
                 
             int fileLen = Trans.readInt();
-            System.out.println(fileLen);
+            //System.out.println(fileLen);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
             while (true) {
@@ -67,7 +67,7 @@ public class Client extends Socket implements Runnable {
                 if (str == null) {
                     break;
                 }
-                System.out.println(str);
+                //System.out.println(str);
             }
             socket.close();
             toTrans.close();

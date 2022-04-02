@@ -79,7 +79,7 @@ public class Server {
                 int fileLen = Trans.readInt();
                 byte[] data = new byte[fileLen - 4];
                 Trans.readFully(data);
-                System.out.println(fileLen);
+                //System.out.println(fileLen);
                 
 
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -93,7 +93,7 @@ public class Server {
                         response=proxy.transactions_parse(doc.getFirstChild());
                         break;
                 }
-                System.out.println("finish generate response");
+                //System.out.println("finish generate response");
                 send();
             } catch (Exception e) {
                 e.printStackTrace();
