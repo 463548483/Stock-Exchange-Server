@@ -59,7 +59,7 @@ public class CheckExcute {
                 }
                 // execute_list: executed orders in order_execute
                 Order order = order_list.get(0);
-                System.out.println("The type of the order is: " + order.getType());
+                //System.out.println("The type of the order is: " + order.getType());
                 int transaction_id = transactions_id.getTransactionId();
                 ArrayList<ExecuteOrder> execute_list = stockDB.searchExecuteOrder(transaction_id, order.getType());
                 if(execute_list != null){
