@@ -27,7 +27,7 @@ public class XMLgenerator {
             DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
             DocumentBuilder bd=factory.newDocumentBuilder();
             document=bd.newDocument();
-            result=document.createElement("result");
+            result=document.createElement("results");
             document.appendChild(result);
         }catch(Exception e){
             e.getStackTrace();

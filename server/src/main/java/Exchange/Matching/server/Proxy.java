@@ -14,10 +14,12 @@ public class Proxy {
     private CheckExcute checkExcute;
     private int query_flag = 0;
     private int cancel_flag = 1;
-    private Socket socket;
+    //private Socket socket;
+    private Messenger messenger;
 
-    public Proxy(db stockDB,Socket socket){
-        this.socket=socket;
+    public Proxy(db stockDB,Messenger messenger){
+        //this.socket=socket;
+        this.messenger=messenger;
         checkExcute=new CheckExcute(stockDB);
     }
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<create>
+  <symbol sym="COD">
+    <account id="55">10</account>
+    <account id="66">10</account>
+    <account id="77">10</account>
+  </symbol>
+</create>

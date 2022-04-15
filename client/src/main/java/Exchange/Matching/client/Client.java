@@ -67,7 +67,7 @@ public class Client extends Socket implements Runnable {
                 if (str == null) {
                     break;
                 }
-                //System.out.println(str);
+                System.out.println(str);
             }
             socket.close();
             toTrans.close();
