@@ -47,8 +47,8 @@ class Task implements Runnable {
             // toTrans.flush();
             // toTrans.write(data);
             // toTrans.flush();
-            // int len=response.length();
-            // messenger.send(Integer.toString(len));
+            int len=response.length();
+            messenger.send(Integer.toString(len)+"\n");
             messenger.send(response);
         } catch (Exception e) {
             e.printStackTrace();
